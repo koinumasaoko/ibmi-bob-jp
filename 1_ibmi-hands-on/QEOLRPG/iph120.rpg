@@ -1,0 +1,92 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400対話型（１）解答例　受注入力                                    *
+      *%EMETADATA                                                      *
+     H*****************************************************************
+     H* IPH120 * 受注入力プログラム
+     H*****************************************************************
+     H            Y
+     FIPH120S CF  E                    WORKSTN
+     FJUMIDP  UF  E           K        DISK                      A
+     FJUMEIP  O   E           K        DISK                      A
+     FTOKMSP  IF  E           K        DISK
+     FHINMSP  IF  E           K        DISK
+     C*****************************************************************
+     C*見出し入力
+     C*****************************************************************
+     C           @DISP1    TAG
+     C                     EXSR CLEAR
+     C                     WRITEPANEL03
+     C                     EXFMTPANEL01
+     C           *IN03     IFEQ '1'
+     C                     SETON                     LR
+     C                     RETRN
+     C                     END
+     C*（受注番号チェック）
+     C           CHUBAN    CHAINJUMIDP               30
+     C           *IN30     IFEQ '0'
+     C                     SETON                     31
+     C                     GOTO @DISP1
+     C                     END
+     C*
+     C                     SETOF                     31
+     C*（得意先番号チェック）
+     C           TOKBAN    CHAINTOKMSP               32
+     C           *IN32     IFEQ '1'
+     C                     GOTO @DISP1
+     C                     END
+     C* （再表示）
+     C                     WRITEPANEL01
+     C*****************************************************************
+     C*明細画面表示
+     C*****************************************************************
+     C           @DISP2    TAG
+     C                     SETON                     90
+     C                     WRITEPANEL03
+     C                     EXFMTPANEL02
+     C           *IN03     IFEQ '1'
+     C                     SETON                     LR
+     C                     RETRN
+     C                     END
+     C*（見出し再入力）
+     C           *IN01     IFEQ '1'
+     C                     GOTO @DISP1
+     C                     END
+     C*（品目番号チェック）
+     C           JDHINB    CHAINHINMSP               33
+     C   33                GOTO @DISP2
+     C*（金額計算）
+     C           HNTEIK    MULT JDSURY    JDKING
+     C*（受注レコード書き出し）
+     C           *IN02     IFEQ '1'
+     C                     MOVE TOKBAN    JDTOKB
+     C                     MOVE CHUBAN    JDCHUB
+     C                     Z-ADD1         JDGYOB
+     C                     Z-ADDHNTEIK    JDUTAN
+     C                     WRITEJUMEIR
+     C*
+     C                     MOVE TOKBAN    JHTOKB
+     C                     MOVE CHUBAN    JHCHUB
+     C                     MOVE UDATE     JHDATE
+     C                     Z-ADDJDKING    JHKING
+     C                     Z-ADD1         JHGYOS
+     C                     WRITEJUMIDR
+     C                     GOTO @DISP1
+     C                     END
+     C*
+     C                     GOTO @DISP2
+     C*****************************************************************
+     C*ＣＬＥＡＲサブルーチン
+     C*****************************************************************
+     C           CLEAR     BEGSR
+     C                     SETOF                     90
+     C                     SETOF                     33
+     C                     MOVE *BLANK    TKBANG
+     C                     MOVE *BLANK    TKNAKJ
+     C                     MOVE *BLANK    TKADR1
+     C                     MOVE *BLANK    TKADR2
+     C                     MOVE *BLANK    JDHINB
+     C                     MOVE *BLANK    HNNAKJ
+     C                     Z-ADD0         HNTEIK
+     C                     Z-ADD0         JDSURY
+     C                     Z-ADD0         JDKING
+     C                     ENDSR

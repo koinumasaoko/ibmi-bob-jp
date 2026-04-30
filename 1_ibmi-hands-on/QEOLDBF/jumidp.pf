@@ -1,0 +1,18 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400受注見出しファイル(KEY-JHCHUB)                             *
+      *%EMETADATA                                                      *
+     A*受注見出しファイル
+     A          R JUMIDR                    TEXT('受注見出しレコード')
+     A            JHTOKB         5          COLHDG('得意先' '番号')
+     A            JHCHUB         5  0       COLHDG('受注番号')
+     A            JHDATE         6  0       COLHDG('受注日付')
+     A            JHTCHU         5          COLHDG('得意先' '注文番号')
+     A            JHKING         7  0       COLHDG('受注金額')
+     A            JHGYOS         3  0       COLHDG('明細行数')
+     A            JHOKUB         5          COLHDG('送り状' '番号')
+     A            JHYUSO         2          COLHDG('輸送コード')
+     A            JHSHUK        20O         COLHDG('出荷先')
+     A            JHTEKI        20O         COLHDG('摘要')
+     A            JHTIKU         2          COLHDG('地区'  'コード')
+     A*
+     A          K JHCHUB

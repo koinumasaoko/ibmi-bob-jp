@@ -1,0 +1,21 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400ＣＬ実習問題２解答例                                        *
+      *%EMETADATA                                                      *
+     A                                      PRINT(QPRINT)
+     A          R PANEL01
+     A                                  1  2'CLP02MS'
+     A                                  2  2'XXXXXX-XX'
+     A                                  1 61DATE EDTCDE(Y)
+     A                                  1 71TIME
+     A                                  2 24'受注業務メニュー' DSPATR(HI RI)
+     A                                  4 21'01 品目マスター照会'
+     A                                  5 21'02 得意先マスター照会'
+     A                                  7 21'11 受注入力'
+     A                                  9 21'21 メッセージの表示'
+     A                                 11 21'99 前に戻る'
+     A                                 16 20'選択'
+     A                                 17 21'==>'
+     A            BANGO          2   I 17 26CHECK(ME MF)
+     A                                      VALUES('01' '02' '11' '21' '99')
+     A                                 17 50'担当者'
+     A            TANTO         10   B 17 59

@@ -1,0 +1,30 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400対話型（１）解答例　得意先照会                                   *
+      *%EMETADATA                                                      *
+     H            Y
+     F* IPH110 * 得意先照会
+     FIPH110S CF  E                    WORKSTN
+     FTOKMSP  IF  E           K        DISK
+     C                     DO   *HIVAL
+     C*ＰＡＮＥＬ０１の表示
+     C                     EXFMTPANEL01
+     C           *IN03     IFEQ '1'
+     C                     SETON                     LR
+     C                     RETRN
+     C                     END
+     C*得意先マスターの読み取り
+     C           S1TOKB    CHAINTOKMSP               30
+     C           *IN30     IFEQ '0'
+     C*差額計算
+     C           TKGEND    SUB  TKUZAN    SAGAKU
+     C*ＰＡＮＥＬ０２の表示
+     C                     SETOF                     30
+     C                     WRITEPANEL01
+     C                     EXFMTPANEL02
+     C           *IN03     IFEQ '1'
+     C                     SETON                     LR
+     C                     RETRN
+     C                     END
+     C*
+     C                     END
+     C                     END

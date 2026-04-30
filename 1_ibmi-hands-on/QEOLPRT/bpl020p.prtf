@@ -1,0 +1,41 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400バッチプログラム実習問題２解答例                                  *
+      *%EMETADATA                                                      *
+     A*****************************************************************
+     A**         得意先別受注一覧表　　　                          **
+     A**          PRINTER FILE(NAME---BPL020P)                       **
+     A*****************************************************************
+     A          R ¥HED
+     A                                      SKIPB(02)
+     A                                     2'BPL020'
+     A                                    20'＊＊　得意先別受注一覧表＊＊'
+     A                                    82'日付:'
+     A                                    90DATE EDTCDE(Y)
+     A                                   100'PAGE :'
+     A                                   107PAGNBR EDTCDE(Z)
+     A                                      SPACEA(02)
+     A                                     6'得意先'
+     A                                    18'得意先名ー漢字'
+     A                                    44'受注番号'
+     A                                    58'明細行数'
+     A                                    72'受注金額'
+     A                                      SPACEA(01)
+     A                                     6'番号'
+     A                                      SPACEA(02)
+     A          R ¥DTL
+     A                                      SPACEA(02)
+     A            JHTOKB         5         7TEXT('得意先番号')
+     A            TKNAKJ        20        19TEXT('得意先名（漢字）')
+     A            JHCHUB         5  0     48TEXT('受注番号')
+     A            JHGYOS         3  0     64TEXT('明細行数')
+     A                                      EDTCDE(Z)
+     A            JHKING         7  0     72TEXT('受注金額')
+     A                                      EDTCDE(J)
+     A          R ¥TTL                      SPACEA(00)
+     A                                    10'＊＊最終計＊＊'
+     A                                    38'ﾚｺｰﾄﾞ件数'
+     A            KENSU          3  0     50EDTCDE(1)
+     A                                    59'受注金額'
+     A            GOKEI          9  0     70EDTCDE(J)
+     A                                    91'平均金額'
+     A            HEIKIN         7  0    102EDTCDE(J)

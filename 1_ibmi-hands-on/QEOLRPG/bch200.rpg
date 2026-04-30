@@ -1,0 +1,67 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400バッチ・プログラム　デバッグ例題                                  *
+      *%EMETADATA                                                      *
+     H            Y
+     F*BCH200品目マスターの印刷
+     FHINMSP  IF  E           K        DISK
+     FQPRINT  O   F     132     OF     PRINTER
+     C*見出し印刷
+     C                     EXCPTMIDASI                       (1)
+     C                     MOVE '0'       *IN99              (2)
+     C*品目マスターの読み込み
+     C           *IN99     DOUEQ'1'                          (3)
+     C                     READ HINMSP                   99  (4)
+     C           *IN99     IFEQ '0'                          (5)
+     C                     EXSR ¥HINMS                       (6)
+     C                     END                               (7)
+     C                     END                               (8)
+     C*終了処理
+     C                     EXCPTSAISHU                       (9)
+     C                     SETON                     LR     (10)
+     C                     RETRN                            (11)
+     C*
+     C           ¥HINMS    BEGSR                            (12)
+     C*頁変えの確認
+     C   OF                EXCPTMIDASI                      (13)
+     C   OF                SETOF                     OF     (14)
+     C*明細の印刷
+     C                     EXCPTMEISAI                      (15)
+     C                     ADD  1         RECSU   50        (16)
+     C                     ENDSR                            (17)
+     OQPRINT  E   02           MIDASI
+     O                                   51 '＊＊　品目マスター'
+     O                                   67 'リスト　＊＊'
+     O                                   97 '作成日：'
+     O                         UDATE Y  105
+     O                         PAGE  Z  113
+     O                                  117 '頁'
+     O        E   03           MIDASI
+     O                                    7 '品目'
+     O                                   22 '品　　名'
+     O                                   40 '仕入先'
+     O                                   48 '定価'
+     O                                   58 '原価'
+     O                                   72 '当月売上'
+     O                                   83 '当年売上'
+     O                                   96 '当月売上'
+     O                                  109 '当年売上'
+     O        E   0406         MIDASI
+     O                                    7 '番号'
+     O                                   40 '番　号'
+     O                                   72 '数　　量'
+     O                                   83 '数　　量'
+     O                                   96 '金　　額'
+     O                                  109 '金　　額'
+     O        E  1             MEISAI
+     O                         HNBANG     7
+     O                         HNNAKJ    30
+     O                         HNVEND    38
+     O                         HNTEIKJ   48
+     O                         HNGENKJ   58
+     O                         HNGSURJ   72
+     O                         HNNSURJ   83
+     O                         HNGKINJ   96
+     O                         HNNKINJ  109
+     O        E  0             SAISHU
+     O                                   18 '＊レコード件数＊'
+     O                         RECSU 1   25

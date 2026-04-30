@@ -1,0 +1,69 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400対話型（２）実習問題２解答例                                    *
+      *%EMETADATA                                                      *
+     A*****************************************************************
+     A**          受注入力画面                                     **
+     A**          DISPLAY FILE(NAME---IPH220S)                       **
+     A*****************************************************************
+     A                                      PRINT(QPRINT)
+     A*****************************************************************
+     A**          DISPLAY RECORD(NAME---PANEL01)                     **
+     A*****************************************************************
+     A          R PANEL01                   CA03(03 '終了')
+     A                                      OVERLAY
+     A                                      ERASE(PANEL81 PANEL91)
+     A                                  1  2'IPH220S'
+     A                                  1 63'日付:'
+     A                                  1 71DATE EDTCDE(Y)
+     A                                  2  2'XXXXXX-XX'
+     A                                  2 30'受注入力'  DSPATR(RI HI)
+     A                                  2 63'時刻:'
+     A                                  2 71TIME
+     A                                  5  2'受注日付'
+     A            CHUBI          6  0B  5 13
+     A                                  5 25'受注番号'
+     A            CHUBAN         5Y 0B  5 38EDTCDE(Z)  CHECK(RB)
+     A  30                              5 45'番号が既にある'
+     A                                      DSPATR(RI HI)
+     A                                  6 25'得意先番号'
+     A            TOKBAN         5   B  6 38
+     A  31                              6 45'得意先が見つからない'
+     A                                      DSPATR(RI HI)
+     A                                  8 25'得意先名'
+     A            TKNAKJ        20   O  8 36
+     A                                  9 25'住所'
+     A            TKADR1        20   O  9 36
+     A            TKADR2        20   O 10 36
+     A*****************************************************************
+     A**          DISPLAY RECORD(NAME---PANEL81)                     **
+     A*****************************************************************
+     A          R PANEL81                   SFL
+     A            RRNS           1  0O 13 18
+     A            HINBAN         5   B 13 24
+     A            SURYO          5Y 0B 13 33EDTCDE(Z) CHECK(RB)
+     A            TANKA          5Y 0B 13 42EDTCDE(Z) CHECK(RB)
+     A            HNNAKJ        20   O 13 51
+     A  32                                  DSPATR(HI RI)
+     A*****************************************************************
+     A**          DISPLAY RECORD(NAME---PANEL91)                    **
+     A*****************************************************************
+     A          R PANEL91                   SFLCTL(PANEL81)
+     A                                      SFLSIZ(5) SFLPAG(5)
+     A                                      OVERLAY PROTECT
+     A                                      CA03(03 '終了')
+     A                                      CF05(05 '見出し再入力')
+     A                                      CF08(08 '受注レコードの書き出し')
+     A  41                                  SFLDSPCTL SFLDSP SFLEND
+     A  42                                  SFLCLR
+     A                                 12 14'行番'
+     A                                 12 24'品番'
+     A                                 12 32'数量'
+     A                                 12 41'単価'
+     A                                 12 50'品名'
+     A*****************************************************************
+     A**          DISPLAY RECORD(NAME---PANEL02)                     **
+     A*****************************************************************
+     A          R PANEL02                    OVERLAY
+     A                                 23  2'F3=終了'
+     A  35                             23 12'F5=見出し再入力'
+     A  35                             23 30'F8=受注レコ－ド書出し'

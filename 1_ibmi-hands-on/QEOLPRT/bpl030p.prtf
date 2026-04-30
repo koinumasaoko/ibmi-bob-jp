@@ -1,0 +1,45 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400バッチプログラム実習問題３解答例                                  *
+      *%EMETADATA                                                      *
+     A*****************************************************************
+     A**         受注一覧表　　　                                  **
+     A**          PRINTER FILE(NAME---BPL030P)                       **
+     A*****************************************************************
+     A          R ¥HED01
+     A                                      SKIPB(02)
+     A                                     2'BPL030'
+     A                                    30'＊＊地区別受注一覧表＊＊'
+     A                                    82'日付:'
+     A                                    90DATE EDTCDE(Y)
+     A                                   100'PAGE :'
+     A                                   107PAGNBR EDTCDE(Z)
+     A                                      SKIPA(04)
+     A                                     4'地区コード:'
+     A            JHTIKU         2        18TEXT('地区コード')
+     A                                    21'地区名:'
+     A            Z1TIKNAM       8        31TEXT('地区名')
+     A                                     4'得意先番号'
+     A                                      SKIPB(06)
+     A                                    18'得意先名'
+     A                                    40'レコード数'
+     A                                    59'受注金額'
+     A                                    77'平均金額'
+     A                                      SPACEA(03)
+     A          R ¥TTL01
+     A                                      SPACEA(02)
+     A            JHTOKB         5         5TEXT('得意先番号')
+     A            TKNAKJ        20        19TEXT('得意先漢字')
+     A            Z2REC          4  0     46TEXT('レコード数')
+     A                                      EDTCDE(1)
+     A            Z2KING         9  0     57TEXT('受注金額')
+     A                                      EDTCDE(J)
+     A            Z2AVR          7  0     77TEXT('平均金額')
+     A                                      EDTCDE(J)
+     A          R ¥TTL02                    SPACEA(00)
+     A                                     4'＊地区計＊'
+     A            Z3REC          5  0     45TEXT('レコード件数')
+     A                                      EDTCDE(1)
+     A            Z3KING        10  0     55TEXT('受注金額')
+     A                                      EDTCDE(J)
+     A            Z3AVR          7  0     77TEXT('平均金額')
+     A                                      EDTCDE(J)

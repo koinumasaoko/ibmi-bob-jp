@@ -1,0 +1,13 @@
+      /*%METADATA                                                     */
+      /* %TEXT EOL/400ＣＬ実習問題１解答例                                      */
+      /*%EMETADATA                                                    */
+PGM
+DCLF CLP01MS
+START:
+SNDRCVF RCDFMT(PANEL01)
+IF (&BANGO='01') CALL CLP01C
+IF (&BANGO='02') CALL CLP02C
+IF (&BANGO='11') CALL CLP11C
+IF (&BANGO='99') RETURN
+GOTO START
+ENDPGM

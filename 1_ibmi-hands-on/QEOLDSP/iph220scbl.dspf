@@ -1,0 +1,63 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400対話型（２）実習問題２解答例                                    *
+      *%EMETADATA                                                      *
+     A*****************************************************************
+     A**          受注入力画面                                     **
+     A**          DISPLAY FILE(NAME---IPH220S)                       **
+     A*****************************************************************
+     A                                      INDARA
+     A                                      PRINT(QPRINT)
+     A                                      CA03(03 '終了')
+     A*****************************************************************
+     A**          DISPLAY RECORD(NAME---PANEL81)                     **
+     A*****************************************************************
+     A          R PANEL81                   SFL
+     A            S1RRNS         1  0B 15 18
+     A            S1HINB         5A  B 15 24
+     A            S1SURY         5  0B 15 33EDTCDE(Z) CHECK(RB)
+     A            S1TANK         5  0  15 42EDTCDE(Z)
+     A            S1HNKJ        20O    15 51
+     A  32                                  DSPATR(HI RI)
+     A*****************************************************************
+     A**          DISPLAY RECORD(NAME---PANEL91)                    **
+     A*****************************************************************
+     A          R PANEL91                   SFLCTL(PANEL81)
+     A                                      SFLSIZ(5) SFLPAG(5)
+     A                                      OVERLAY PROTECT
+     A                                      CF05(05 '見出し再入力')
+     A                                      CF08(08 '受注レコードの書き出し')
+     A                                      CHANGE(20 '変更あり ')
+     A  41                                  SFLDSP SFLEND
+     A N42                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLINZ
+     A                                  1  2'IPH220S'
+     A                                  1 63'日付:'
+     A                                  1 71DATE EDTCDE(Y)
+     A                                  2  2'XXXXXX-XX'
+     A                                  2 30'受注入力'  DSPATR(RI HI)
+     A                                  2 63'時刻:'
+     A                                  2 71TIME
+     A                                  5  2'受注日付'
+     A            C1DATE         6  0B  5 13
+     A                                  5 25'受注番号'
+     A            C1CHUB         5Y 0B  5 38EDTCDE(Z)  CHECK(RB)
+     A  30                              5 45'番号が既にある'
+     A                                      DSPATR(RI HI)
+     A                                  6 25'得意先番号'
+     A            C1TOKB         5   B  6 38
+     A  31                              6 45'得意先が見つからない'
+     A                                      DSPATR(RI HI)
+     A                                  8 25'得意先名'
+     A            C1TNKJ        20   O  8 36
+     A                                  9 25'住所'
+     A            C1ADR1        20   O  9 36
+     A            C1ADR2        20   O 10 36
+     A                                 12  2'F3=終了'
+     A                                 12 12'F5=見出し再入力'
+     A                                 12 30'F8=受注レコ－ド書出し'
+     A                                 14 14'行番'
+     A                                 14 24'品番'
+     A                                 14 32'数量'
+     A                                 14 41'単価'
+     A                                 14 50'品名'

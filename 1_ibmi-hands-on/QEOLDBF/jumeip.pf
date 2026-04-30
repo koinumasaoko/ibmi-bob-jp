@@ -1,0 +1,16 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400受注明細ファィル(KEY-JDCHUB,JDGYOB)                       *
+      *%EMETADATA                                                      *
+     A*受注明細レコード
+     A                                      UNIQUE
+     A          R JUMEIR                    TEXT('受注明細レコード')
+     A            JDTOKB         5          COLHDG('得意先' '番号')
+     A            JDCHUB         5  0       COLHDG('受注番号')
+     A            JDGYOB         3  0       COLHDG('行番号')
+     A            JDHINB         5          COLHDG('品目番号')
+     A            JDSURY         5  0       COLHDG('受注数量')
+     A            JDUTAN         5  0       COLHDG('売単価')
+     A            JDKING         7  0       COLHDG('明細金額')
+     A*
+     A          K JDCHUB
+     A          K JDGYOB

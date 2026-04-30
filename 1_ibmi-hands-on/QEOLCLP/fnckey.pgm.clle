@@ -1,0 +1,6 @@
+      /*%METADATA                                                     */
+      /* %TEXT EOL/400機能キーの使用法(TFRCTL AOC020)                         */
+      /*%EMETADATA                                                    */
+PGM
+TFRCTL QEOL/AOC020
+ENDPGM

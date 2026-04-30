@@ -1,0 +1,23 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400得意先マスター物理ファイル(KEY-TKBANG)                         *
+      *%EMETADATA                                                      *
+     A* 得意先マスター・ファイル
+     A                                      UNIQUE
+     A          R TOKMSR                    TEXT('得意先マスター・レコード')
+     A            TKBANG         5          COLHDG('得意先' '番')
+     A            TKNAKN        20          COLHDG('得意先' '仮名')
+     A            TKNAKJ        20O         COLHDG('得意先' '漢字')
+     A            TKADR1        20O         COLHDG('住所１')
+     A            TKADR2        20O         COLHDG('住所２')
+     A            TKTIKU         2          COLHDG('地区' 'コード')
+     A            TKPOST         6          COLHDG('郵便番号')
+     A            TKTELE        13          COLHDG('電話番号')
+     A            TKGURI         9  0       COLHDG('当月' '売上高')
+     A            TKNURI         9  0       COLHDG('当年' '売上高')
+     A            TKZURI         9  0       COLHDG('前年' '売上高')
+     A            TKUZAN         9  0       COLHDG('売掛金' '残高')
+     A            TKGEND         9  0       COLHDG('信用' '限度額')
+     A            TKNYUK         6  0       COLHDG('最終' '入金日')
+     A            TKSIME         1          COLHDG('締め日' 'コード')
+     A*
+     A          K TKBANG

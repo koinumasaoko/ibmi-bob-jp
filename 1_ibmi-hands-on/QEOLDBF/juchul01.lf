@@ -1,0 +1,9 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400受注論理ファイル                                          *
+      *%EMETADATA                                                      *
+     A          R JUMIDR                    PFILE(JUMIDP)
+     A          K JHCHUB
+     A*
+     A          R JUMEIR                    PFILE(JUMEIP)
+     A          K JDCHUB
+     A          K JDGYOB

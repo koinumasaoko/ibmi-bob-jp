@@ -1,0 +1,13 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400仕入先ﾏｽﾀｰ物理ﾌｧｲﾙ (KEY-SRBANG)                        *
+      *%EMETADATA                                                      *
+                                            UNIQUE
+     A          R SIRMSR
+     A            SRBANG         5          COLHDG('仕入先' '番号')
+     A            SRNAKN        20          COLHDG('仕入先名' 'カナ')
+     A            SRNAKJ        20O         COLHDG('仕入先名' '漢字')
+     A            SRKZAN         9  0       COLHDG('買掛残高')
+     A            SRGKIN         9  0       COLHDG('仕入金額' '－当月－')
+     A            SRNKIN         9  0       COLHDG('仕入金額' '－当年－')
+     A*                                                                     )
+     A          K SRBANG

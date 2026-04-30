@@ -1,0 +1,18 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400品目マスター物理ファイル(KEY-HNBANG)                          *
+      *%EMETADATA                                                      *
+     A*品目マスター　物理ファイル(HINMSP)
+     A                                      UNIQUE
+     A          R HINMSR
+     A            HNBANG         5          COLHDG('品目' '番号')
+     A            HNNAKN        20          COLHDG('品名－カナ')
+     A            HNNAKJ        20O         COLHDG('品名－漢字')
+     A            HNVEND         5          COLHDG('仕入先' '番　号')
+     A            HNTEIK         5  0       COLHDG('定価')
+     A            HNGENK         5  0       COLHDG('原価')
+     A            HNGSUR         5  0       COLHDG('当　　月' '売上数量')
+     A            HNNSUR         5  0       COLHDG('当　　年' '売上数量')
+     A            HNGKIN         7  0       COLHDG('当　　月' '売上金額')
+     A            HNNKIN         7  0       COLHDG('当　　年' '売上金額')
+     A*
+     A          K HNBANG

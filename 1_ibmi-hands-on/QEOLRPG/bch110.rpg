@@ -1,0 +1,51 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400バッチ・プログラム実習問題１解答例                                 *
+      *%EMETADATA                                                      *
+     H            Y
+     F*BCH110得意先マスター一覧表の印刷
+     FTOKMSL03IF  E           K        DISK
+     FQPRINT  O   F     132     OF     PRINTER
+     C*見出し印刷
+     C                     EXCPTMIDASI
+     C           *IN99     DOWEQ'0'
+     C*得意先マスターの読み込み
+     C                     READ TOKMSL03                 99
+     C           *IN99     IFEQ '0'
+     C*利用可能額の計算
+     C           TKGEND    SUB  TKUZAN    WKRIYO  90
+     C*頁変えの確認
+     C   OF                EXCPTMIDASI
+     C   OF                SETOF                     OF
+     C*明細の印刷
+     C                     EXCPTMEISAI
+     C                     END
+     C                     END
+     C*終了処理
+     C                     SETON                     LR
+     C                     RETRN
+     OQPRINT  E  202           MIDASI
+     O                                   31 '＊＊＊　　得　意　先'
+     O                                   47 'マ　ス　タ　ー'
+     O                                   69 '一　覧　表　　＊＊＊'
+     O                                   87 '作成日：'
+     O                         UDATE Y   98
+     O                                  113 '頁'
+     O                         PAGE  Z  118
+     O        E  2             MIDASI
+     O                                    6 '地区'
+     O                                   18 '得意先番号'
+     O                                   35 '得　意　先　名'
+     O                                   52 '住　所　１'
+     O                                   73 '住　所　２'
+     O                                   96 '信用限度額'
+     O                                  112 '売掛金残高'
+     O                                  128 '利用可能額'
+     O        E  1             MEISAI
+     O                         TKTIKU     4
+     O                         TKBANG    14
+     O                         TKNAKJ    39
+     O                         TKADR1    60
+     O                         TKADR2    81
+     O                         TKGENDJ   96
+     O                         TKUZANJ  112
+     O                         WKRIYOJ  128

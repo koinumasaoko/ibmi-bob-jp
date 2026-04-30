@@ -1,0 +1,6 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400得意先マスター論理ファイル(KEY-TKPOST)                         *
+      *%EMETADATA                                                      *
+     A*得意先マスター　論理ファイル　ＴＯＫＭＳＬ０１
+     A          R TOKMSR                    PFILE(TOKMSP)
+     A          K TKPOST

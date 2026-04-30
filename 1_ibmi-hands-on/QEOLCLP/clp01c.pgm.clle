@@ -1,0 +1,12 @@
+      /*%METADATA                                                     */
+      /* %TEXT EOL/400仮の品目照会プログラム                                     */
+      /*%EMETADATA                                                    */
+/* 仮のＣＬプログラム　ＣＬＰ０１Ｃ */
+PGM
+DCL &PGM *CHAR 10 'CLP01C'
+DCL &WS  *CHAR 10
+DCL &MSG *CHAR 80
+RTVJOBA JOB(&WS)
+CHGVAR &MSG ('仮のＣＬプログラム' *CAT &PGM *TCAT 'が実行された')
+SNDUSRMSG MSG(&MSG) MSGTYPE(*INFO) TOMSGQ(&WS)
+ENDPGM

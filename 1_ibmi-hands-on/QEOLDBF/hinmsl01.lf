@@ -1,0 +1,7 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400品目マスター論理ファイル(KEY-HNNAKN)                          *
+      *%EMETADATA                                                      *
+     A*品目マスター　論理ファイル(HINMSL01)
+     A*
+     A          R HINMSR                    PFILE(HINMSP)
+     A          K HNNAKN

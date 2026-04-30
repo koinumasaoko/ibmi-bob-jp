@@ -1,0 +1,6 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400得意先マスター論理ファイル(KEY-TKNAKN)                         *
+      *%EMETADATA                                                      *
+     A*得意先マスター　論理ファイル　ＴＯＫＭＳＬ０２
+     A          R TOKMSR                    PFILE(TOKMSP)
+     A          K TKNAKN

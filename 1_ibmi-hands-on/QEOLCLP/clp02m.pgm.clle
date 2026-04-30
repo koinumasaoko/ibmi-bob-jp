@@ -1,0 +1,27 @@
+      /*%METADATA                                                     */
+      /* %TEXT EOL/400ＣＬ実習問題２解答例                                      */
+      /*%EMETADATA                                                    */
+PGM
+DCLF CLP02MS
+DCL &ANS *CHAR 1
+START:
+SNDRCVF RCDFMT(PANEL01)
+IF (&BANGO='01') CALL CLP01C
+IF (&BANGO='02') CALL CLP02C
+IF (&BANGO='11') +
+ DO
+ BANGO11:
+ CALL CLP11C
+ SNDUSRMSG MSG('受注入力は終了か？ Y/N  DFT(Y)') +
+           VALUES('Y' 'N') DFT('Y') MSGRPY(&ANS)
+ IF (&ANS='N') GOTO BANGO11
+ ENDDO
+IF (&BANGO='21') DSPMSG MSGQ(*WRKSTN)
+IF (&BANGO='99') +
+ DO
+ SNDUSRMSG MSG('本日の作業は完了．　担当： ' *CAT &TANTO) +
+           MSGTYPE(*INFO)
+ RETURN
+ ENDDO
+GOTO START
+ENDPGM

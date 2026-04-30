@@ -1,0 +1,55 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400対話型（２）解答例　得意先照会                                   *
+      *%EMETADATA                                                      *
+     F* IPH210 * 得意先探索
+     FIPH210S CF  E                    WORKSTN
+     F                                        RRN01 KSFILE PANEL80
+     FTOKMSL02IF  E           K        DISK
+     C*****************************************************************
+     C           @START    TAG
+     C                     EXFMTPANEL01
+     C   03                SETON                     LR
+     C   03                RETRN
+     C* ファイル・ポインターのセット
+     C                     MOVEL*BLANK    TKNAKN
+     C                     MOVELTOKTAN    TKNAKN
+     C           TKNAKN    SETLLTOKMSL02             30
+     C   30                GOTO @START
+     C* レコードの読み取りとサブファイルへの書き出し
+     C           @NEXT     TAG
+     C                     Z-ADD0         RRN01   30
+     C           @READ     TAG
+     C                     READ TOKMSL02                 50
+     C  N50                ADD  1         RRN01
+     C  N50                WRITEPANEL80                  51
+     C  N50N51             GOTO @READ
+     C*サブファイル・レコードがない時
+     C           RRN01     IFEQ 0
+     C                     EXSR ¥CLEAR
+     C                     Z-ADD1         RRN01
+     C                     WRITEPANEL80
+     C                     END
+     C*サブファイルの表示
+     C                     WRITEPANEL01
+     C                     SETON                     41
+     C                     EXFMTPANEL90
+     C                     SETOF                     41
+     C   03                SETON                     LR
+     C   03                RETRN
+     C*サブファイルの消去
+     C                     SETON                     42
+     C                     WRITEPANEL90
+     C                     SETOF                     42
+     C*コマンド・キーのチェック
+     C   08                GOTO @NEXT
+     C*
+     C                     GOTO @START
+     C*
+     C           ¥CLEAR    BEGSR
+     C                     MOVE *BLANK    TKBANG
+     C                     MOVE *BLANK    TKNAKN
+     C                     MOVE *BLANK    TKADR1
+     C                     MOVE *BLANK    TKADR2
+     C                     Z-ADD0         TKGEND
+     C                     Z-ADD0         TKUZAN
+     C                     ENDSR

@@ -1,0 +1,7 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400得意先ﾏｽﾀｰ論理ﾌｧｲﾙ(KEY-TKTIKU,TKBANG)                  *
+      *%EMETADATA                                                      *
+     A*得意先マスター　論理ファイル　ＴＯＫＭＳＬ０３
+     A          R TOKMSR                    PFILE(TOKMSP)
+     A          K TKTIKU
+     A          K TKBANG

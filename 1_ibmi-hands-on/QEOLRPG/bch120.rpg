@@ -1,0 +1,73 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400バッチ・プログラム実習問題２解答例                                 *
+      *%EMETADATA                                                      *
+     H            Y
+     F*BCH120受注一覧表の印刷（売掛金残高更新／信用限度チェック）
+     FJUMIDL01IF  E           K        DISK
+     FTOKMSP  UF  E           K        DISK
+     FQPRINT  O   F     132     OF     PRINTER
+     C*見出し印刷
+     C                     EXCPTMIDASI
+     C           *IN99     DOWEQ'0'
+     C*受注見出しファイルの読み込み
+     C                     READ JUMIDL01                 99
+     C           *IN99     IFEQ '0'
+     C*得意先マスターの読み込み
+     C           JHTOKB    CHAINTOKMSP               90
+     C*得意先マスターが有る時
+     C           *IN90     IFEQ '0'
+     C                     Z-ADDTKUZAN    WKUZAN  90
+     C                     ADD  JHKING    TKUZAN
+     C*得意先マスターの更新
+     C                     UPDATTOKMSR
+     C*利用可能額の計算
+     C           TKGEND    SUB  TKUZAN    WKRIYO  90   30   30=負
+     C*得意先マスターが無い時
+     C                     ELSE
+     C                     MOVE *ALL'?'   TKNAKJ
+     C                     Z-ADD0         TKGEND
+     C                     Z-ADD0         WKUZAN
+     C                     Z-ADD0         WKRIYO
+     C                     SETOF                     30
+     C                     END
+     C*頁変えの確認
+     C   OF                EXCPTMIDASI
+     C   OF                SETOF                     OF
+     C*明細の印刷
+     C                     EXCPTMEISAI
+     C                     END
+     C                     END
+     C*終了処理
+     C                     SETON                     LR
+     C                     RETRN
+     OQPRINT  E  202           MIDASI
+     O                                   41 '＊＊＊　　得　意　先'
+     O                                   65 '別　受　注　一　覧　表'
+     O                                   75 '＊＊＊'
+     O                                   99 '作成日：'
+     O                         UDATE Y  108
+     O                                  123 '頁'
+     O                         PAGE  Z  128
+     O        E  1             MIDASI
+     O                                    9 '得意先'
+     O                                   26 '得　意　先　名'
+     O                                   41 '受注番号'
+     O                                   51 '受注日付'
+     O                                   65 '信用限度額'
+     O                                   80 '売掛金残高'
+     O                                   95 '受注金額'
+     O                                  110 '利用可能額'
+     O                                  131 'コ　メ　ン　ト　欄'
+     O        E  2             MIDASI
+     O                                    9 '番　号'
+     O        E  1             MEISAI
+     O                         JHTOKB     7
+     O                         TKNAKJ    30
+     O                         JHCHUB    38
+     O                         JHDATEY   50
+     O                         TKGENDJ   65
+     O                         WKUZANJ   80
+     O                         JHKINGJ   95
+     O                         WKRIYOJ  110
+     O                 30               131 '信用限度オーバー　'
+     O                 90               131 '得意先マスターなし'

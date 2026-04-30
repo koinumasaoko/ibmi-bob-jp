@@ -1,0 +1,158 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400対話型（２）解答例　受注入力                                    *
+      *%EMETADATA                                                      *
+     H            Y
+     F*****************************************************************
+     F*受注入力プログラム（サブファイル）IPH220
+     F*****************************************************************
+     FIPH220S CF  E                    WORKSTN
+     F                                        RRN01 KSFILE PANEL81
+     FJUMIDP  UF  E           K        DISK                      A
+     FJUMEIP  O   E           K        DISK                      A
+     FTOKMSP  IF  E           K        DISK
+     FHINMSP  IF  E           K        DISK
+     E*****************************************************************
+     E                    @MSG    1   1 20
+     C*****************************************************************
+     C*見出し画面入力
+     C*****************************************************************
+     C           @START    TAG
+     C                     SETOF                     35
+     C                     WRITEPANEL02
+     C                     EXFMTPANEL01
+     C*（Ｆ３が押されたとき）
+     C           *IN03     IFEQ '1'
+     C                     SETON                     LR
+     C                     RETRN
+     C                     END
+     C*（受注番号重複チェック）
+     C                     SETOF                     30
+     C           CHUBAN    CHAINJUMIDP               50
+     C           *IN50     IFEQ '0'
+     C                     SETON                     30
+     C                     GOTO @START
+     C                     END
+     C*（得意先番号チェック）
+     C           TOKBAN    CHAINTOKMSP               31
+     C           *IN31     IFEQ '1'
+     C                     GOTO @START
+     C                     END
+     C*****************************************************************
+     C*明細入力画面表示
+     C*****************************************************************
+     C*（見出し再表示）
+     C                     SETON                     35
+     C                     WRITEPANEL01
+     C                     WRITEPANEL02
+     C*（サブファイルの初期設定）
+     C                     Z-ADD0         RRN01
+     C                     MOVE *BLANK    HINBAN
+     C                     MOVE *ZERO     SURYO
+     C                     MOVE *ZERO     TANKA
+     C                     MOVE *BLANK    HNNAKJ
+     C                     SETOF                     51
+     C           *IN51     DOWEQ'0'
+     C                     ADD  1         RRN01
+     C                     MOVE RRN01     RRNS
+     C                     WRITEPANEL81                  51
+     C                     END
+     C*（サブファイルの表示）
+     C           @DSP81    TAG
+     C                     SETON                     41
+     C                     EXFMTPANEL91
+     C                     SETOF                     41
+     C*（Ｆ３が押されたとき）
+     C           *IN03     IFEQ '1'
+     C                     SETON                     LR
+     C                     RETRN
+     C                     END
+     C*（Ｆ５が押されたとき）
+     C           *IN05     IFEQ '1'
+     C                     EXSR ¥CLEAR
+     C                     GOTO @START
+     C                     END
+     C*
+     C                     EXSR ¥CHECK
+     C*（実行キーが押されたとき）
+     C           *IN08     IFEQ '0'
+     C           WKERR     ORGT 0
+     C                     GOTO @DSP81
+     C                     END
+     C*（Ｆ８が押されたとき）
+     C                     EXSR ¥WRITE
+     C                     EXSR ¥CLEAR
+     C                     GOTO @START
+     C*****************************************************************
+     C*クリアー・サブルーチン
+     C*****************************************************************
+     C           ¥CLEAR    BEGSR
+     C                     SETON                     42
+     C                     WRITEPANEL91
+     C                     SETOF                     42
+     C                     MOVE *BLANK    TKNAKJ
+     C                     MOVE *BLANK    TKADR1
+     C                     MOVE *BLANK    TKADR2
+     C                     ENDSR
+     C*****************************************************************
+     C*チェック・サブルーチン
+     C*****************************************************************
+     C           ¥CHECK    BEGSR
+     C                     Z-ADD0         WKERR   30
+     C                     Z-ADD1         RRN01   10
+     C*
+     C                     SETOF                     52
+     C           *IN52     DOWEQ'0'
+     C           RRN01     CHAINPANEL81              52
+     C           *IN52     IFEQ '0'
+     C                     MOVE *BLANK    HNNAKJ
+     C           HINBAN    IFNE *BLANK
+     C           HINBAN    CHAINHINMSP               32
+     C           TANKA     IFEQ 0
+     C                     Z-ADDHNTEIK    TANKA
+     C                     END
+     C           *IN32     IFEQ '1'
+     C                     MOVE @MSG,1    HNNAKJ
+     C                     ADD  1         WKERR
+     C                     END
+     C*
+     C                     END
+     C                     UPDATPANEL81
+     C                     END
+     C                     ADD  1         RRN01
+     C                     END
+     C                     ENDSR
+     C*****************************************************************
+     C*レコード書出しサブルーチン
+     C*****************************************************************
+     C           ¥WRITE    BEGSR
+     C                     Z-ADD0         JHKING
+     C                     Z-ADD0         JHGYOS
+     C*
+     C                     Z-ADD0         RRN01
+     C                     SETOF                     53
+     C           *IN53     DOWEQ'0'
+     C                     ADD  1         RRN01
+     C           RRN01     CHAINPANEL81              53
+     C           *IN53     IFEQ '0'
+     C           HINBAN    IFNE *BLANK
+     C                     MOVE CHUBAN    JDCHUB
+     C                     MOVE TOKBAN    JDTOKB
+     C                     MOVE HINBAN    JDHINB
+     C                     Z-ADDSURYO     JDSURY
+     C                     Z-ADDTANKA     JDUTAN
+     C           JDSURY    MULT JDUTAN    JDKING
+     C                     Z-ADDRRN01     JDGYOB
+     C                     WRITEJUMEIR
+     C                     ADD  1         JHGYOS
+     C                     ADD  JDKING    JHKING
+     C                     END
+     C                     END
+     C                     END
+     C*
+     C                     MOVE CHUBAN    JHCHUB
+     C                     MOVE TOKBAN    JHTOKB
+     C                     MOVE CHUBI     JHDATE
+     C                     WRITEJUMIDR
+     C                     ENDSR
+**
+品番エラー
