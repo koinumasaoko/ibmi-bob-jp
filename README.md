@@ -1,0 +1,125 @@
+# IBM Bob for IBM i - 日本語リソース
+
+IBM BobをIBM i開発で活用するための日本語リソース集です。
+
+## 📚 このリポジトリについて
+
+このリポジトリは、IBM iのユーザーとビジネス・パートナーがIBM Bob（watsonx Code Assistant）を使ってIBM i開発を効率化する方法を学ぶための教材を提供します。
+
+## 🎯 対象者
+
+- IBM i 開発者
+- IBM i システムの保守担当者
+- レガシーコードの理解・モダナイゼーションに取り組む方
+- IBM Bobを初めて使う方
+
+## 📁 コンテンツ
+
+### 1. IBM i 開発ハンズオン
+
+IBM BobをIBM i開発で活用する方法を学ぶ実践的なハンズオン資料です。
+
+📖 **[1_ibmi-hands-on](./1_ibmi-hands-on/ハンズオン資料/README.md)**
+
+**内容:**
+- LAB1: 既存プログラムの理解（RPGコードの解析）
+- LAB2: プログラムの修正（画面・プログラムへの項目追加）
+- LAB3: 新規プログラムの作成（ゼロからの開発）
+
+**所要時間:** 約60分  
+**難易度:** 初級〜中級
+
+**サンプルプログラム:**
+- RPG III/ILE プログラム
+- 画面ファイル（DDS）
+- データベースファイル
+- QEOL400実習回答からの抜粋
+
+## 🚀 クイックスタート
+
+### リポジトリの取得
+
+**Git cloneで取得（推奨）:**
+```bash
+git clone https://github.com/koinumasaoko/ibmi-bob-jp.git
+cd ibmi-bob-jp
+```
+
+**ZIPファイルでダウンロード:**
+1. GitHubの「Code」→「Download ZIP」
+2. ZIPを解凍
+
+### ハンズオンを始める
+
+```bash
+cd 1_ibmi-hands-on/ハンズオン資料
+```
+
+📖 **[README.md](./1_ibmi-hands-on/ハンズオン資料/README.md)** を開いて、詳細な手順を確認してください。
+
+## ✅ 前提条件
+
+- IBM Bobアカウント（[30日間無料トライアル](https://bob.ibm.com/trial)）
+- Bob IDE（[ダウンロード](https://bob.ibm.com/download)）
+- Webブラウザ（Chrome、Firefox、Safari、Edge等）
+- インターネット接続
+
+## 💡 IBM Bobとは
+
+IBM Bob（watsonx Code Assistant）は、AI駆動の開発アシスタントです。
+
+**主な機能:**
+- コードの理解と解析
+- コードの自動生成
+- コードレビューと品質向上
+- ドキュメントの自動作成
+- 多言語対応（RPG、COBOL、Java、Python等）
+
+## 🎓 学習成果
+
+このリポジトリの教材を完了すると、以下ができるようになります：
+
+✅ IBM Bobを使ってRPGコードを理解できる  
+✅ IBM Bobを使って既存コードを修正できる  
+✅ IBM Bobを使って新規プログラムを作成できる  
+✅ IBM i開発の生産性を大幅に向上できる  
+✅ レガシーコードの保守・モダナイゼーションを効率化できる
+
+## 🔗 関連リソース
+
+### IBM Bob 公式
+- [IBM Bob 公式サイト](https://www.ibm.com/products/watsonx-code-assistant)
+- [IBM Bob ドキュメント](https://www.ibm.com/docs/en/watsonx-code-assistant)
+
+### IBM i 関連
+- [IBM i Information Center](https://www.ibm.com/support/pages/ibm-i-documentation)
+- [RPG Programmer's Guide](https://www.ibm.com/support/pages/rpg-programmers-guide)
+- [IBM i QEOL サンプルプログラム](https://community.ibm.com/community/user/viewdocument/ibm-i-qeol?CommunityKey=2bf1e52c-a706-482b-86e8-018e81a19ab5&tab=librarydocuments)
+
+## 📝 コンテンツ一覧
+
+| ディレクトリ | 内容 | 状態 |
+|------------|------|------|
+| [1_ibmi-hands-on](./1_ibmi-hands-on/) | IBM i開発ハンズオン（LAB1-3） | ✅ 公開中 |
+| 2_advanced-topics | 高度なトピック | 🚧 準備中 |
+| 3_best-practices | ベストプラクティス集 | 🚧 準備中 |
+
+## 🤝 コントリビューション
+
+このリポジトリへの貢献を歓迎します！
+
+- バグ報告: Issueを作成してください
+- 改善提案: Pull Requestを送ってください
+- 質問: Discussionsで質問してください
+
+## 📄 ライセンス
+
+© 2026 IBM Corporation. All rights reserved.
+
+## 📧 お問い合わせ
+
+このリポジトリに関するご質問は、IBM担当者までお問い合わせください。
+
+---
+
+**さあ、始めましょう！** 👉 [IBM i 開発ハンズオンを開く](./1_ibmi-hands-on/ハンズオン資料/README.md)
