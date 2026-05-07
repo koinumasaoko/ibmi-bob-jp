@@ -92,7 +92,7 @@ cd 2_ibmi-hands-on-EMEA-CE_jp
 
 ## 💡 IBM Bobとは
 
-IBM Bob（watsonx Code Assistant）は、AI駆動の開発アシスタントです。
+IBM Bobは、理解や変換を助けるAIアシスタントにとどまらず、改修、文書化、テスト、ビルドまで含めて開発の流れ全体に関わるAIエージェントであり、AI SDLC（ソフトウェア開発ライフサイクル）パートナーです。
 
 **主な機能:**
 - コードの理解と解析
