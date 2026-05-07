@@ -1,0 +1,1 @@
+注意：TEXT属性はSQLコマンドのLABEL ONで表現されます
