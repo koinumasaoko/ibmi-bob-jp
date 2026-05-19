@@ -1,0 +1,62 @@
+      *%METADATA                                                       *
+      * %TEXT EOL/400得意先別売上高一覧表の印刷
+      *%EMETADATA                                                      *
+     H            Y
+     F*BCH130得意先別売上高一覧表の印刷
+     FTOKMSL01IF  E           K        DISK
+     FQPRINT  O   F     132     OF     PRINTER
+     C*ワーク項目の初期化
+     C                     Z-ADD0         WKGOTN  90
+     C                     Z-ADD0         WKGOZE  90
+     C*見出し印刷
+     C                     EXCPTMIDASI
+     C           *IN99     DOWEQ'0'
+     C*得意先マスターの読み込み（売上高順）
+     C                     READ TOKMSL01                 99
+     C           *IN99     IFEQ '0'
+     C*前年比の計算（ゼロ除算エラー処理）
+     C           TKZURI    IFGT 0
+     C           TKNURI    DIV  TKZURI    WKZNHI  72
+     C           WKZNHI    MULT 100       WKZNHI  72
+     C                     ELSE
+     C                     Z-ADD0         WKZNHI  72
+     C                     END
+     C*合計の累計
+     C           WKGOTN    ADD  TKNURI    WKGOTN  90
+     C           WKGOZE    ADD  TKZURI    WKGOZE  90
+     C*頁変えの確認
+     C   OF                EXCPTMIDASI
+     C   OF                SETOF                     OF
+     C*明細の印刷
+     C                     EXCPTMEISAI
+     C                     END
+     C                     END
+     C*合計行の印刷
+     C                     EXCPTGOKEI
+     C*終了処理
+     C                     SETON                     LR
+     C                     RETRN
+     OQPRINT  E  202           MIDASI
+     O                                   31 '＊＊＊得意先別'
+     O                                   53 '売上高一覧表'
+     O                                   69 '＊＊＊'
+     O                                   87 '作成日：'
+     O                         UDATE Y   98
+     O                                  113 '頁'
+     O                         PAGE  Z  118
+     O        E  2             MIDASI
+     O                                   12 '得意先番号'
+     O                                   35 '得　意　先　名'
+     O                                   60 '当年売上高'
+     O                                   80 '前年売上高'
+     O                                  100 '前年比（％）'
+     O        E  1             MEISAI
+     O                         TKBANG    10
+     O                         TKNAKJ    35
+     O                         TKNURIJ   60
+     O                         TKZURIJ   80
+     O                         WKZNHIJ  100
+     O        E  2             GOKEI
+     O                                   35 '＊＊＊　合　計　＊＊＊'
+     O                         WKGOTNJ   60
+     O                         WKGOZEJ   80

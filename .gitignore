@@ -44,7 +44,10 @@ build/
 *.pgm
 *.module
 
-# IBM i specific
-.bob/
+# IBM i specific - Bob configuration
+.bob/*
+!.bob/rules/
+.bob/rules/*
+!.bob/rules/rules-code/
 
 # Made with Bob
