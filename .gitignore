@@ -48,6 +48,6 @@ build/
 .bob/*
 !.bob/rules/
 .bob/rules/*
-!.bob/rules/rules-code/
+!.bob/rules/rules-agent/
 
 # Made with Bob
