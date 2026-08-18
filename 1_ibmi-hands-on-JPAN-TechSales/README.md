@@ -120,7 +120,7 @@ ibmi-bob-jp/
 │   ├── LAB2.md
 │   ├── LAB3-FIX.md
 │   ├── LAB3-FF.md
-│   └── QEOL400/                      # IBM i QEOL400サンプルプログラム
+│   └── QEOL/                      # IBM i QEOLサンプルプログラム
 │       ├── QEOLRPG/                  # RPGプログラム
 │       ├── QEOLRPGLE/                # RPG ILEプログラム
 │       ├── QEOLDSP/                  # 画面ファイル
@@ -141,7 +141,7 @@ ibmi-bob-jp/
 
 ```
 1_ibmi-hands-on-JPAN-TechSales/
-├── QEOL400/              # 元のサンプルプログラム
+├── QEOL/              # 元のサンプルプログラム
 │   ├── QEOLRPG/          # RPG IIIプログラム
 │   │   ├── bch110.rpg    # バッチプログラム（LAB1で使用）
 │   │   └── iph210.rpg    # 対話型プログラム（LAB2で使用）
@@ -163,7 +163,7 @@ ibmi-bob-jp/
 
 **📌 サンプルソースについて**
 
-このサンプルソースは、**IBM i QEOL400の実習回答**から抜粋しています。
+このサンプルソースは、**IBM i QEOLの実習回答**から抜粋しています。
 
 完全なサンプルプログラム一式を取得したい場合は、以下からダウンロードしてIBM iでリストアしてください：
 

@@ -29,9 +29,9 @@ IBM Bobを使って、既存の対話型プログラムに新しい項目を追�
 以下のファイルを**エクスプローラーエリア**で確認します（内容を理解するための参考）：
 
 ```
-QEOL400/QEOLRPG/iph210.rpg      # RPGプログラム（参照元）
-QEOL400/QEOLDSP/iph210s.dspf    # 画面ファイル（参照元）
-QEOL400/QEOLDBF/tokmsp.pf       # 得意先マスター定義（参照用）
+QEOL/QEOLRPG/iph210.rpg      # RPGプログラム（参照元）
+QEOL/QEOLDSP/iph210s.dspf    # 画面ファイル（参照元）
+QEOL/QEOLDBF/tokmsp.pf       # 得意先マスター定義（参照用）
 ```
 
 💡 **ヒント**: これらのファイルは後のステップでBobが自動的に参照するため、今開く必要はありません。全体像を把握したい場合のみ確認してください。
@@ -43,8 +43,8 @@ QEOL400/QEOLDBF/tokmsp.pf       # 得意先マスター定義（参照用）
 **Bobへの依頼例**:
 ```
 以下のファイルを別名でコピーしてください：
-- QEOL400/QEOLRPG/iph210.rpg → QEOL400/QEOLRPG/iph210l2.rpg
-- QEOL400/QEOLDSP/iph210s.dspf → QEOL400/QEOLDSP/iph210l2.dspf
+- QEOL/QEOLRPG/iph210.rpg → QEOL/QEOLRPG/iph210l2.rpg
+- QEOL/QEOLDSP/iph210s.dspf → QEOL/QEOLDSP/iph210l2.dspf
 ```
 
 **期待される動作**:
@@ -66,7 +66,7 @@ QEOL400/QEOLDBF/tokmsp.pf       # 得意先マスター定義（参照用）
 
 **Bobへの質問例**:
 ```
-QEOL400/QEOLRPG/iph210.rpgとQEOL400/QEOLDSP/iph210s.dspfの関係を説明してください。
+QEOL/QEOLRPG/iph210.rpgとQEOL/QEOLDSP/iph210s.dspfの関係を説明してください。
 このプログラムは何をしていますか？
 ```
 
