@@ -53,12 +53,12 @@ IBM Bobを使って、RPG III固定形式のプログラムを自由形式RPG（
 ## 📝 参考情報
 
 ### 対象プログラム
-- `QEOL400/QEOLRPG/bch110.rpg` - 得意先マスター一覧表（固定形式RPG III）
+- `QEOL/QEOLRPG/bch110.rpg` - 得意先マスター一覧表（固定形式RPG III）
 
 ### 関連ファイル
-- `QEOL400/QEOLDBF/tokmsp.pf` - 得意先マスター
-- `QEOL400/QEOLDBF/jumeip.pf` - 受注見出しファイル
-- `QEOL400/QEOLDBF/jumidp.pf` - 受注明細ファイル
+- `QEOL/QEOLDBF/tokmsp.pf` - 得意先マスター
+- `QEOL/QEOLDBF/jumeip.pf` - 受注見出しファイル
+- `QEOL/QEOLDBF/jumidp.pf` - 受注明細ファイル
 
 ### 変換の流れ
 ```

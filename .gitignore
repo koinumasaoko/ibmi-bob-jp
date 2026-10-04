@@ -51,3 +51,6 @@ build/
 !.bob/rules/rules-agent/
 
 # Made with Bob
+
+#PDF
+*.pdf

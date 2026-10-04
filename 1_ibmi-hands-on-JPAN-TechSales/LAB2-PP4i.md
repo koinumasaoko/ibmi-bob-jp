@@ -1,12 +1,12 @@
 > 🚧 **このラボは現在作成中です。内容は予告なく変更される場合があります。**
 
-# LAB2-PP4i: PP4iワークフロー・スラッシュコマンドを体験 ⚙️
+# LAB2-PP4i: PP4iでソース改修・テストを体験 🔧
 
 ## 🎯 このラボの目標
 
-PP4iが提供する**ワークフロー**と**/(スラッシュ)コマンド**を実際に動かして、IBM i 開発における複雑な作業の自動化を体験します。ビジネスルールの抽出、固定形式RPGの自由形式への変換、ERD生成、SQLレビューなど、実務で即活用できる機能を習得します。
+PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で改修**し、**コンパイル**して**RPGUnitでテスト**する、一連の開発サイクルを体験します。
 
-**所要時間**: 20-25分  
+**所要時間**: 15-20分  
 **難易度**: ★★★☆☆（中級）  
 **使用モード**: IBM i Developer モード  
 **ワークスペース**: Library List
@@ -17,196 +17,212 @@ PP4iが提供する**ワークフロー**と**/(スラッシュ)コマンド**�
 
 このラボでは、以下のスキルを習得します：
 
-- ✅ ワークフローの起動と操作方法
-- ✅ **Business Rules 抽出ワークフロー**の実行
-- ✅ **RPG Modernization ワークフロー**による固定形式→自由形式変換
-- ✅ **/(スラッシュ)コマンド**（`/erd`・`/review_SQL`）の活用
-- ✅ ワークフローとスラッシュコマンドの使い分け
+- ✅ `read_member` でIBM i からソースを直接読み込み
+- ✅ Bobへの自然言語指示によるRPGLEソース改修
+- ✅ `write_member` でIBM i に直接書き戻し
+- ✅ `execute_compile_action` によるコンパイル
+- ✅ **RPGUnit** によるユニットテストの生成と実行
 
 ---
 
-## 🚀 ステップ1: 事前準備（3分）
+## 📋 このラボで使うソース
 
-### 1.1 ワークスペースを Library List に切り替える
+ラボ専用のシンプルなRPGLEプログラム `ADDVAL` を使います。
 
-このラボでは IBM i 上のソースを直接操作するため、ワークスペースを **Library List** に切り替えます。
+```rpgle
+     H DFTACTGRP(*NO) ACTGRP(*NEW)
+
+     * プロトタイプの定義
+    D ADDVAL      PR             9Z 0
+    D                                9Z 0
+
+     * 変数の定義
+    D RESULT          S              9Z 0
+    D INPUT           S              9Z 0
+
+     * メイン処理
+    C     *ENTRY        PLIST
+    C                   PARM                    INPUT
+    C*
+    C                   EVAL      RESULT = ADDVAL(INPUT)
+    C                   DSPLY                   RESULT
+    C                   SETON                                        LR
+    C                   RETURN
+
+     * ここからサブ・プロシージャー
+    P ADDVAL      B
+     * パラメーターインターフェース
+    D ADDVAL      PI             9Z 0
+    D  NUMBER                        9Z 0
+    C*
+    C                   RETURN    NUMBER + 100
+    P                 E
+```
+
+**ポイント**:
+- `ADDVAL` プロシージャ：引数に 100 を加算して返す
+- `DFTACTGRP(*NO)` により ILE プログラムとして動作
+- エクスポートプロシージャなので RPGUnit でテスト可能
+
+---
+
+## ステップ1: 事前準備（3分）
+
+### 1.1 ソースファイルの作成とメンバーの転送
+
+このソースを IBM i の `STUDYxx/QEOLRPGLE` に `ADDVAL` メンバーとして登録します。
+
+以下のようにBobへ依頼してください：
+
+```
+STUDYxx/QEOLRPGLE に ADDVAL メンバーを作成して、
+以下のソースを書き込んでください。
+
+     H DFTACTGRP(*NO) ACTGRP(*NEW)
+
+     * プロトタイプの定義
+    D ADDVAL      PR             9Z 0
+    D                                9Z 0
+
+     * 変数の定義
+    D RESULT          S              9Z 0
+    D INPUT           S              9Z 0
+
+     * メイン処理
+    C     *ENTRY        PLIST
+    C                   PARM                    INPUT
+    C*
+    C                   EVAL      RESULT = ADDVAL(INPUT)
+    C                   DSPLY                   RESULT
+    C                   SETON                                        LR
+    C                   RETURN
+
+     * ここからサブ・プロシージャー
+    P ADDVAL      B
+     * パラメーターインターフェース
+    D ADDVAL      PI             9Z 0
+    D  NUMBER                        9Z 0
+    C*
+    C                   RETURN    NUMBER + 100
+    P                 E
+```
+
+### 1.2 ワークスペースを Library List に切り替える
 
 1. チャット入力欄の上部にある **New Task** をクリック
 2. **「Library List」** を選択
-3. LAB1-PP4i で追加した `QEOL` ライブラリーが含まれていることを確認
+3. `STUDYxx` ライブラリーが含まれていることを確認
 
-> 💡 **LAB1-PP4iとの違い**: LAB1-PP4iではLocalワークスペースでHTMLを生成しました。このラボではIBM i 上のソースメンバーを直接読み書きするため Library List を使用します。
-
-### 1.2 IBM i Developer モードを選択
+### 1.3 IBM i Developer モードを選択
 
 1. **チャットウィンドウ左下**のモード選択から **「IBM i Developer」** モードを選択
 
 ---
 
-## 📋 ステップ2: Business Rules 抽出ワークフローを実行（8分）
+## ステップ2: ソースを読み込んで内容を把握する（3分）
 
-PP4iのワークフローを使って、既存RPGプログラムからビジネスルールを自動抽出します。
-
-> 💡 **ワークフローとは？**  
-> 複数のスキル・ツールを組み合わせて複雑なタスクを**手順通りに自動実行**するPP4i固有の機能です。「手順書を自動で実行してくれる仕組み」とイメージしてください。
-
-### 2.1 ワークフローの起動
-
-1. チャット画面の **「Start Workflow」** ボタンを押下
-
-2. ワークフローを実行する**ワークスペースを指定**し、**Enter キー** を押下  
-   - 今回は **Library List** を指定
-
-3. 表示されるワークフロー一覧から **「Business Rules 抽出」** の開始ボタン（▶）を押下
-
-### 2.2 抽出対象の指定
-
-Bobから対象プログラムを聞かれたら以下を入力してください：
+改修前に対象プログラムの内容をBobに読み込ませ、現状を把握します。
 
 ```
-QEOL/QEOLRPG の bch110 メンバー
+STUDYxx/QEOLRPGLE の ADDVAL メンバーを読み込んで、
+このプログラムの処理内容を日本語で説明してください。
 ```
-
-### 2.3 抽出結果の確認
 
 **期待される動作**:
-1. `read_member` ツールが `bch110` を IBM i から直接取得
-2. ビジネスルール（計算式・条件分岐・処理フロー）を自動解析
-3. Markdown形式のドキュメントを生成・表示
-
-**期待される回答のポイント**:
-- 計算ルール（例：利用可能額 = 信用限度額 − 売掛金残高）
-- ループ・条件分岐のロジック
-- 入出力ファイルの役割
-- エラー処理の有無
+1. `read_member` ツールが `ADDVAL` を IBM i から直接取得
+2. IBM i Developer モードのRPGスキルが解析
+3. `ADDVAL` プロシージャの動作を日本語で説明
 
 ---
 
-## 🔄 ステップ3: RPG Modernization ワークフローを実行（10分）
+## ステップ3: ソースを改修する（5分）
 
-固定形式RPG（RPG III）を自由形式RPG（RPGLE フリーフォーム）に変換するワークフローを体験します。
+`ADDVAL` プロシージャの加算値を **100 → 200** に変更します。
 
-> 📖 **参考**: [RPG Modernization Workflow 公式ドキュメント](https://bob.ibm.com/docs/ide/premium-packages/bob-for-i/workflows#rpg-modernization-workflow)
+### 3.1 改修内容の指示
 
-### 3.1 事前準備：変換先ソースファイルの作成
-
-> ⚠️ **重要**: QEOLのソースファイルはCCSID **5026**（日本語EBCDIC・DBCS混在）で作成されています。変換先のRPGLEソースファイルを新規作成する際は、以下のパラメーターが必要です。
-
-BobまたはIBM i のコマンド画面で以下のCLコマンドを実行してください：
-
-```cl
-CRTSRCPF FILE(QEOL/QEOLRPGLE2) +
-         RCDLEN(112) +
-         CCSID(1399) +
-         IGCDTA(*YES) +
-         TEXT('LAB2-PP4i 変換先RPGLEソース')
 ```
-
-| パラメーター | 値 | 理由 |
-|-----------|---|------|
-| `RCDLEN(112)` | 112バイト | DBCSデータを含む日本語ソース用（デフォルト92では不足） |
-| `CCSID(1399)` | Unicode対応の日本語CCSID | 5026より新しく、変換後のソースに適切 |
-| `IGCDTA(*YES)` | DBCSデータ使用を明示 | 日本語コメント等のDBCSデータを正しく扱う |
-
-> 💡 **Bobへ依頼する場合**:
-> ```
-> IBM i 上に QEOL/QEOLRPGLE2 というソースファイルを
-> RCDLEN(112) CCSID(1399) IGCDTA(*YES) で作成してください。
-> ```
-
-### 3.2 RPG Modernization ワークフローの起動
-
-1. チャット画面の **「Start Workflow」** ボタンを押下
-2. ワークスペースに **Library List** を指定し、**Enter キー** を押下
-3. ワークフロー一覧から **「RPG Modernization」** の開始ボタン（▶）を押下
-
-### 3.3 変換対象・変換先の指定
-
-Bobの指示に従って以下を入力してください：
-
-| 項目 | 入力値 |
-|-----|-------|
-| 変換元 | `QEOL/QEOLRPG` の `bch110` メンバー |
-| 変換先 | `QEOL/QEOLRPGLE2` の `BCH110` メンバー |
-
-### 3.4 変換結果の確認
+ADDVAL の ADDVAL プロシージャの加算値を 100 から 200 に変更してください。
+変更後のソースを STUDYxx/QEOLRPGLE の ADDVAL メンバーに書き戻してください。
+```
 
 **期待される動作**:
-1. Bobが固定形式RPG IIIの構文を解析
-2. 自由形式RPGLE（フリーフォーム）に変換
-3. 変換後のソースを `QEOL/QEOLRPGLE2/BCH110` に書き込み
+1. Bobが `RETURN NUMBER + 100` の行を特定
+2. `RETURN NUMBER + 200` に変更
+3. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
 
-**変換例（イメージ）**:
+> 💡 **ポイント**: `write_member` ツールはPP4i固有です。Base Bobではソースをチャット上で確認するだけで、IBM i への書き戻しはできません。
 
-| 変換前（固定形式） | 変換後（自由形式） |
-|-----------------|----------------|
-| `C           TKGEND    SUB  TKUZAN    WKRIYO  90` | `WKRIYO = TKGEND - TKUZAN;` |
-| `C           *IN99     DOWEQ'0'` | `DOW NOT %EOF(TOKMSL03);` |
-| `C                     EXCPTMIDASI` | `WRITE MIDASI;` |
+### 3.2 コンパイル
 
-> 💡 **ポイント**: ワークフローは段階的に進み、各ステップでBobから確認を求められる場合があります。内容を確認しながら進めましょう。
+```
+STUDYxx/QEOLRPGLE の ADDVAL をコンパイルしてください。
+```
+
+**期待される動作**:
+1. `execute_compile_action` ツールが `CRTBNDRPG` を実行
+2. コンパイル結果（成功 / エラーメッセージ）をチャットに表示
+3. エラーがあればBobが原因を説明・修正を提案
+
+> ✅ **確認**: コンパイルが正常終了したことを確認してください。
 
 ---
 
-## 📐 ステップ4: /erdコマンドでERDを生成（5分）
+## ステップ4: RPGUnit でテストする（7分）
 
-スラッシュコマンドを使って、接続中のIBM i データベースのER図を自動生成します。
-
-> 💡 **スラッシュコマンドとは？**  
-> ワークフローほど複雑ではないが、よく使う作業をコマンド化したPP4i固有の機能です。`/` を入力するとコマンド一覧が表示されます。
-
-### 4.1 /erdコマンドの実行
-
-1. チャット入力欄で **`/erd`** と入力
-2. コマンド一覧から `erd` を選択
-3. 対象ライブラリー名を入力：
+### 4.1 テストスイートの生成をBobに依頼
 
 ```
-QEOL
+STUDYxx/QEOLRPGLE の ADDVAL に対する
+RPGUnit テストスイートのスタブを生成してください。
 ```
 
-**期待される出力（Mermaid ERD）**:
+**期待される動作**:
+1. `generate_rpg_unit_test_stub` ツールがテストスタブを自動生成
+2. `ADDVAL` プロシージャ用のテストケースひな形を提示
+3. テストファイルの保存先（例：`STUDYxx/QEOLRPGLE/ADDVALT`）を提案
 
-```mermaid
-erDiagram
-    TOKMSP {
-        char TKBANG "得意先番号"
-        char TKNAKJ "得意先名漢字"
-        char TKADR1 "住所1"
-        numeric TKGEND "信用限度額"
-        numeric TKUZAN "売掛金残高"
-    }
-    JUMEIP {
-        char JUKOBANG "得意先番号"
-        numeric JUKIN "受注金額"
-    }
-    TOKMSP ||--o{ JUMEIP : "得意先番号"
+**生成されるテストスタブ（イメージ）**:
+
+```rpgle
+**FREE
+ctl-opt nomain;
+
+/copy QUSRTOOL/QRPGLESRC,TESTCASE
+
+dcl-pr ADDVAL int(10);
+  NUMBER int(10) const;
+end-pr;
+
+dcl-proc testAddHundred export;
+  dcl-pi *n end-pi;
+  aEqual(300 : ADDVAL(100));   // 100 + 200 = 300
+end-proc;
 ```
 
-💡 **活用シーン**: 引き継ぎ資料・設計書にそのまま貼り付けて使えます。ドキュメント不足のシステムでも即座にDB全体像を把握できます。
+### 4.2 テストの実行
 
----
-
-## 🔍 ステップ5: /review_SQLコマンドでSQLをレビュー（3分）
-
-### 5.1 /review_SQLコマンドの実行
-
-1. チャット入力欄で **`/review_SQL`** と入力
-2. コマンド一覧から `review_SQL` を選択
-3. 続けて以下のSQLを貼り付けて送信：
-
-```sql
-SELECT TKBANG, TKNAKJ, TKGEND, TKUZAN, (TKGEND - TKUZAN) AS RIYO
-FROM QEOL/TOKMSP
-WHERE TKUZAN > 0
-ORDER BY TKUZAN DESC
+```
+STUDYxx/QEOLRPGLE の ADDVALT テストスイートを実行してください。
 ```
 
-**期待される回答のポイント**（事前定義のチェックリストに基づく）:
-- ✅ **正確性**: SQLが意図した結果を返すか
-- ✅ **パフォーマンス**: インデックスの活用・実行計画
-- ✅ **セキュリティ**: リスクの有無
-- ✅ **ベストプラクティス**: Db2 for i の推奨事項への準拠（`QEOL/TOKMSP` → `QEOL.TOKMSP` 形式など）
+**期待される動作**:
+1. `run_rpg_unit_test_suite` ツールがテストをコンパイル・実行
+2. テスト結果サマリー（成功 / 失敗件数）をチャットに表示
+
+> ✅ **確認**: `testAddHundred` が成功することを確認してください。
+
+### 4.3 わざと失敗させてみる（オプション）
+
+テストが失敗するとどうなるか確認してみましょう：
+
+```
+ADDVAL の ADDVAL プロシージャの加算値を 300 に変更してコンパイルし、
+テストを再実行してください。
+```
+
+テストが **FAIL** になり、期待値 `300` に対して実際の値 `400` がチャットに表示されます。  
+これがRPGUnitの「デグレード検知」です。
 
 ---
 
@@ -215,105 +231,54 @@ ORDER BY TKUZAN DESC
 このラボを完了したら、以下を確認してください：
 
 - [ ] ワークスペースを Library List に切り替えられた
-- [ ] Business Rules 抽出ワークフローを実行できた
-- [ ] RPG Modernization ワークフローを実行できた
-- [ ] CRTSRCPF の CCSID・RCDLEN・IGCDTA の意味を説明できる
-- [ ] `/erd` コマンドでERDを生成できた
-- [ ] `/review_SQL` コマンドでSQLをレビューできた
-- [ ] ワークフローとスラッシュコマンドの違いを説明できる
+- [ ] `read_member` でソースを読み込み内容を把握できた
+- [ ] Bobへの指示でソースを改修（100→200加算）できた
+- [ ] `write_member` でIBM i に書き戻しできた
+- [ ] コンパイルが成功した
+- [ ] RPGUnit テストスタブを生成できた
+- [ ] RPGUnit テストを実行して **PASS** を確認できた
+- [ ] （オプション）意図的に FAIL させてデグレード検知を体験した
 
 ---
 
 ## 💡 このラボで学んだこと
 
-### PP4iワークフロー・スラッシュコマンドでできたこと
-
-✅ **複雑な作業を手順通りに自動化（ワークフロー）**
-- 従来: マニュアルを読んで手動でコードを変換（数時間〜数日）
-- PP4i活用: ワークフローを起動するだけでビジネスルール抽出・変換を自動実行（数分）
-
-✅ **よく使う作業をコマンド1つで実行（スラッシュコマンド）**
-- `/erd` でDB全体のER図を即生成
-- `/review_SQL` でSQLを包括的にレビュー
-
-### ワークフローとスラッシュコマンドの使い分け
-
-| | ワークフロー | スラッシュコマンド |
-|--|------------|----------------|
-| 複雑さ | 多段階・複雑なタスク | 比較的シンプルなタスク |
-| 起動方法 | Start Workflow ボタン | `/` から入力 |
-| 例 | Business Rules抽出、RPG Modernization | /erd、/review_SQL |
-| 対話 | Bobと対話しながら進む | 入力後すぐ結果が返る |
-
-### PP4i全機能マップ（おさらい）
+### PP4i の開発サイクル
 
 ```
-PP4i
-├── スキル（自動適用） ← LAB1-PP4iで体験
-│   └── RPG/DDS/CL/SQLの専門知識で精度向上
-├── ツール（明示的に呼び出し可能） ← LAB1-PP4iで体験
-│   └── read_member / write_member / execute_cl_command 等
-├── RAG（IBM i 公式ドキュメント参照） ← LAB1-PP4iで体験
-├── ワークフロー（Start Workflowから起動） ← このラボで体験
-│   ├── Business Rules 抽出
-│   └── RPG Modernization
-└── /(スラッシュ)コマンド ← このラボで体験
-    ├── /erd → ERD生成
-    └── /review_SQL → SQLレビュー
+read_member（取得）
+    ↓
+Bob に改修を指示（自然言語）
+    ↓
+write_member（書き戻し）
+    ↓
+execute_compile_action（コンパイル）
+    ↓
+run_rpg_unit_test_suite（テスト）
 ```
 
-### 実務での活用シーン
+### Base Bob と PP4i の比較
 
-1. **引き継ぎ・ドキュメント整備**
-   - Business Rules 抽出で既存システムを即座にドキュメント化
-   - `/erd` で複雑なDB設計を可視化して後任者に引き継ぎ
-
-2. **段階的なモダナイゼーション**
-   - RPG Modernization ワークフローで固定形式→自由形式に安全に変換
-   - 変換後のコードをBobでレビュー・改善
-
-3. **SQL品質向上**
-   - `/review_SQL` でパフォーマンス問題を事前発見
-   - Db2 for i のベストプラクティスへの準拠を確認
-
----
-
-## 🎯 よくある質問
-
-**Q: RPG Modernization ワークフローで変換が失敗した場合は？**
-
-A: 変換先ソースファイルのCCSIDやRCDLENを確認してください。日本語コメントを含むソースは `CCSID(1399)` `RCDLEN(112)` `IGCDTA(*YES)` が必要です。Bobにエラーメッセージを貼り付けて相談するのが最も早い解決方法です。
-
-**Q: ワークフローの結果はどこに保存される？**
-
-A: Library List ワークスペースの場合、書き込みは `write_member` ツールを通じてQSYSソースメンバーに直接行われます。
-
-**Q: /erdで特定のテーブルだけ表示できる？**
-
-A: `/erd` 実行後、Bobにテーブルを絞り込むよう指示することができます（例：「TOKMSPとJUMEIPのみのERDを生成してください」）。
+| 作業 | Base Bob | PP4i |
+|-----|---------|------|
+| ソース取得 | 手動でコピー＆ペースト | `read_member` で自動取得 |
+| ソース改修 | ローカルで編集 | チャットで指示→自動編集 |
+| IBM i への反映 | 手動でアップロード | `write_member` で自動書き戻し |
+| コンパイル | 手動でCLコマンド | `execute_compile_action` |
+| テスト実行 | 手動でRPGUnit起動 | `run_rpg_unit_test_suite` |
 
 ---
 
 ## 🎉 ラボ完了！
 
-お疲れ様でした！PP4iのワークフローとスラッシュコマンドを使った自動化を体験しました。
-
-### このワークショップで学んだこと（まとめ）
-
-| ラボ | 内容 | 習得スキル |
-|-----|------|----------|
-| LAB1 | 既存プログラムの理解 | Ask/Agentモード、コード解析、設計書生成 |
-| LAB2 | プログラムの修正 | DDS/RPGの修正、影響分析 |
-| LAB3-FIX | 新規プログラム作成 | RPG III固定形式の開発 |
-| LAB1-PP4i | PP4i基本操作 | IBM i 接続、スキル/ツール/RAG、HTML設計書生成 |
-| **LAB2-PP4i** | **ワークフロー・スラッシュコマンド** | **Business Rules抽出、RPG変換、ERD生成、SQLレビュー** |
+お疲れ様でした！PP4iを使ったRPGLEソースの改修・テストサイクルを体験しました。
 
 ### 次のステップ
 
-- 📖 [PP4i公式ドキュメント](https://bob.ibm.com/docs/ide/premium-packages/bob-for-i/workflows) でワークフローの詳細を確認
-- 💡 [Qiitaサンプルプロンプト集](https://qiita.com/amogi23/items/fd91ddddf93057e562b5) で実践例を参考にする
-- 🏗️ 自社システムのRulesとSkillsを作成して、チーム開発に活用する
+準備ができたら、次のラボに進みましょう：
+
+👉 **[LAB3-PP4i: ワークフローとスラッシュコマンドで業務を効率化](./LAB3-PP4i.md)** - Business Rules 抽出・RPG Modernization などのワークフローを体験します
 
 ---
 
-**前のページ**: [LAB1-PP4i](./LAB1-PP4i.md) | **トップに戻る**: [README](./README.md)
+**前のページ**: [LAB1-PP4i](./LAB1-PP4i.md) | **次のページ**: [LAB3-PP4i](./LAB3-PP4i.md)

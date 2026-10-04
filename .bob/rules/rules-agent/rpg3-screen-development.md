@@ -200,9 +200,9 @@ CPD7812: サブファイル制御レコードとサブファイルレコード�
 ## 10. 参考プログラム
 
 このプロジェクトの参考プログラム：
-- `QEOL400/QEOLRPG/iph210.rpg`: 得意先照会プログラム
-- `QEOL400/QEOLDSP/iph210s.dspf`: 得意先照会画面
-- `QEOL400/QEOLRPG/iph120.rpg`: 受注入力プログラム（H仕様書の参考）
+- `QEOL/QEOLRPG/iph210.rpg`: 得意先照会プログラム
+- `QEOL/QEOLDSP/iph210s.dspf`: 得意先照会画面
+- `QEOL/QEOLRPG/iph120.rpg`: 受注入力プログラム（H仕様書の参考）
 
 ## まとめ
 

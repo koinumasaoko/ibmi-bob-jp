@@ -219,6 +219,33 @@ RPG III固定形式のプログラムを自由形式RPG（RPG IV/ILE）に変換
 
 📝 [LAB3-FFを始める](./LAB3-FF.md)
 
+---
+
+### 🚀 PP4i ハンズオン（IBM Bob Premium Package for i）
+
+IBM Bob Premium Package for i（PP4i）を使った発展的なハンズオンです。上記のLAB1〜LAB3-FIXを終えた後に実施することを推奨します。
+
+#### LAB1-PP4i: PP4i基本操作 🚀
+**IBM i Developer モード・Local ワークスペース**
+
+PP4iのインストールから接続・ライブラリーリスト設定・HTML内部設計書の自動生成まで、PP4i固有の基本操作を習得します。
+
+📝 [LAB1-PP4iを始める](./LAB1-PP4i.md)
+
+#### LAB2-PP4i: ソース改修・テスト 🔧 (工事中 🚧)
+**IBM i Developer モード・Library List ワークスペース**
+
+PP4iを使ってIBM i 上のRPGソースを直接改修し、RPGUnitでテストを実行する開発サイクルを体験します。
+
+📝 [LAB2-PP4iを始める](./LAB2-PP4i.md)
+
+#### LAB3-PP4i: ワークフロー・スラッシュコマンド ⚙️ (工事中 🚧)
+**IBM i Developer モード・Library List ワークスペース**
+
+Business Rules抽出・RPG Modernization などのワークフローと、`/erd`・`/review_SQL` などのスラッシュコマンドを体験します。
+
+📝 [LAB3-PP4iを始める](./LAB3-PP4i.md)
+
 ### 3️⃣ まとめ
 
 - **まとめと次のステップ** - 学んだことの振り返りと、さらなる活用方法
