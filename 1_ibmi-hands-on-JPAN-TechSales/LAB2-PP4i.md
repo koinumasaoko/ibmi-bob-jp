@@ -439,7 +439,7 @@ STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 - [ ] ワークスペースを Library List に切り替えられた
 - [ ] TAXTBL テーブルを作成して税率データ（10%）を投入できた
 - [ ] BobへのプロンプトでCALCUTLS（サービスプログラム）が作成できた
-- [ ] バインディングディレクトリー CALCBD が作成され CALCUTLS が登録できた
+- [ ] バインディングディレクトリー CALCBD が作成され、CALCUTLS が追加できた（CALCUTIL のコンパイル時のバインド先解決に使われる）
 - [ ] CALCUTIL（メインプログラム）がコンパイルできた
 - [ ] 5250の CALL コマンドで3パターンの動作確認ができた
 - [ ] `read_member` でソースを読み込み内容を把握できた
