@@ -22,6 +22,7 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 - ✅ `write_member` でIBM i に直接書き戻し
 - ✅ `execute_compile_action` によるコンパイル
 - ✅ ILE の **サービスプログラム**・**バインディングディレクトリー**の概念
+- ✅ **Embedded SQL** によるテーブル参照（当日以前の最新税率を動的取得）
 - ✅ **RPGUnit** によるユニットテストの生成と実行
 
 ---
@@ -96,12 +97,14 @@ graph TD
     CALLER["5250 / 呼び出し元\nCALL CALCUTIL PARM(INPUT MODE)"]
     PGM["CALCUTIL *PGM\nMODE分岐のみ\nBNDDIR('STUDYxx/CALCBD')"]
     BNDDIR["CALCBD *BNDDIR\n↓ CALCUTLS を登録"]
-    SRVPGM["CALCUTLS *SRVPGM\nADDVAL: NUMBER + 100\nTAX: NUMBER × 1.1 切り捨て"]
+    SRVPGM["CALCUTLS *SRVPGM\nADDVAL: NUMBER + 100\nTAX: TAXTBL から税率取得して計算"]
+    TAXTBL["TAXTBL *FILE\nAPPLY_DATE / TAX_RATE\n当日以前の最新税率を管理"]
     TEST["CALCUTLT テストスイート\ntestADDVAL_normal\ntestADDVAL_zero\ntestTAX_normal\ntestTAX_truncate\ntestTAX_zero"]
 
     CALLER -->|"CALL"| PGM
     PGM -->|"静的バインド"| BNDDIR
     BNDDIR -->|"解決"| SRVPGM
+    SRVPGM -->|"Embedded SQL\nSELECT 最新税率"| TAXTBL
     TEST -->|"直接呼び出し\nbndSrvPgm"| SRVPGM
 ```
 
@@ -109,6 +112,7 @@ graph TD
 - `CALCUTLS`：`NOMAIN` + プロシージャーを `EXPORT` → RPGUnit から直接呼び出し可能
 - `CALCUTIL`：分岐ロジックのみ、`BNDDIR` で `CALCUTLS` に**静的バインド**
 - `CALCBD`：バインディングディレクトリー。`CALCUTLS` を登録しておくことで `CALCUTIL` がバインド先を解決する
+- `TAXTBL`：適用日付と税率を管理するテーブル。`APPLY_DATE <= CURRENT_DATE` の最新レコードを取得することで、将来の税率も事前登録できる
 - **改修は `CALCUTLS` だけ**：`CALCUTIL` の再コンパイルなしに計算ロジックを差し替えられる
 
 ---
@@ -134,7 +138,28 @@ graph TD
 
 - **チャットウィンドウ左下**のモード選択から **「IBM i Developer」** モードを選択
 
-### 準備3: ソースの作成・コンパイル・バインディングディレクトリーの設定
+### 準備3: 消費税テーブル（TAXTBL）の作成とデータ投入
+
+以下のプロンプトをBobに貼り付けてください（`xx` は自分の番号）：
+
+```
+STUDYxx ライブラリーに消費税テーブルを作成してデータを投入してください。
+
+【1】以下の SQL でテーブルを作成
+CREATE TABLE STUDYxx/TAXTBL (
+  APPLY_DATE  DATE         NOT NULL,
+  TAX_RATE    DECIMAL(5,4) NOT NULL
+)
+
+【2】以下の SQL でデータを投入
+INSERT INTO STUDYxx/TAXTBL VALUES (DATE('2019-10-01'), 0.1000)
+```
+
+> 💡 **TAXTBL の設計**: `APPLY_DATE`（適用開始日）と `TAX_RATE`（税率）のシンプルな2列構成です。将来の税率変更も事前に登録できます。TAX プロシージャーは `APPLY_DATE <= CURRENT_DATE` の中で最も新しいレコードの税率を使います。
+
+> ✅ **確認**: テーブル作成とデータ投入が正常終了したことを確認してから次のステップへ進んでください。
+
+### 準備4: ソースの作成・コンパイル・バインディングディレクトリーの設定
 
 以下のプロンプトをそのままBobに貼り付けてください（`xx` は自分の番号）：
 
@@ -206,7 +231,7 @@ graph TD
 
 > ✅ **確認**: すべて正常終了したことを確認してから次のステップへ進んでください。
 
-### 準備4: 5250でプログラムを呼び出して動作確認する
+### 準備5: 5250でプログラムを呼び出して動作確認する
 
 コンパイルが完了したら、5250エミュレーターで以下を実行して動作を確認します（`xx` は自分の番号）：
 
@@ -258,44 +283,58 @@ STUDYXX/QEOLRPGLE の CALCUTLS と CALCUTIL メンバーを読み込んで、
 
 ---
 
-## ステップ2: ソースを改修する（7分）
+## ステップ2: ソースを改修する（10分）
 
-`CALCUTLS` の `TAX` プロシージャーを改修します。  
+`CALCUTLS` の `TAX` プロシージャーを改修します。
+税率をハードコードするのではなく、**消費税テーブル（TAXTBL）から当日以前の最新税率を動的に取得する**実装に変えます。
+
 以下のプロンプトをそのままBobに貼り付けてください：
 
 ```
 STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE を以下の仕様で改修して、
 サービスプログラムの再作成（CRTRPGMOD → CRTSRVPGM）まで実施してください。
+CRTSRVPGM のパラメーター: EXPORT(*ALL) ACTGRP(*CALLER)
 
 【改修仕様】
-1. TAX プロシージャーの消費税率を 1.1 から 1.08 に変更する
-   （税率8%への変更）
+TAX プロシージャーを以下のように変更する。
 
-2. ADDVAL プロシージャーはそのまま（NUMBER + 100 を返す）
+- 消費税率をハードコードするのではなく、STUDYxx/TAXTBL テーブルから
+  当日以前（APPLY_DATE <= CURRENT_DATE）で最も適用日が新しいレコードの
+  TAX_RATE を Embedded SQL で取得する
+- 取得した税率を NUMBER に掛けて %INT で小数切り捨てした値を返す
+- ADDVAL プロシージャーはそのまま（NUMBER + 100 を返す）
 ```
 
 **期待される動作**:
-1. Bobが改修仕様を解析して `CALCUTLS` ソースを編集
+1. Bobが改修仕様を解析して `CALCUTLS` ソースを編集（Embedded SQL を追加）
 2. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
 3. `CRTRPGMOD` → `CRTSRVPGM` でサービスプログラムを再作成
 
-> 💡 **ポイント**: `CALCUTIL`（`*PGM`）は変更不要です。サービスプログラム（`CALCUTLS`）だけ差し替えれば、呼び出し側の `CALCUTIL` は変更なく新しい計算ロジックを使えます。これが**サービスプログラム分離のメリット**です。
+> 💡 **ポイント**: `CALCUTIL`（`*PGM`）は変更不要です。税率はテーブルで管理されるため、将来の税率変更はテーブルへの INSERT だけで対応できます。これが**データ駆動設計のメリット**です。
 
 > ✅ **確認**: コンパイルが正常終了したことを確認してから次のステップへ進んでください。
 
 ### 動作確認（5250）
 
-改修後、5250エミュレーターで以下を実行して税率変更を確認します（`xx` は自分の番号）：
+改修後、5250エミュレーターで以下を実行して動作を確認します（`xx` は自分の番号）：
 
-**MODE=1: 消費税モード（1000 × 1.08 = 1080）**
+**MODE=1: 消費税モード（TAXTBL の税率 10% → 1000 × 1.1 = 1100）**
 ```
 CALL PGM(STUDYxx/CALCUTIL) PARM('000001000' '1')
 ```
 ```
-DSPLY  0000001080
+DSPLY  0000001100
 ```
 
-> ✅ **確認**: 改修前の `1100` から `1080` に変わっていることを確認してください。
+> 💡 **税率変更の確認**: TAXTBL に新しいレコードを INSERT するだけで税率を変えられます。`CALCUTLS` の再コンパイルは不要です。
+>
+> ```sql
+> INSERT INTO STUDYxx/TAXTBL VALUES (DATE('2024-01-01'), 0.0800)
+> ```
+>
+> 上記を INSERT してから再度 CALL すると `DSPLY 0000000800`（1000 × 0.08 = 80）になります。
+
+> ✅ **確認**: 期待通りに表示されたことを確認してから次のステップへ進んでください。
 
 ---
 
@@ -323,11 +362,6 @@ QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成
 2. `generate_rpg_unit_test_stub` でテストスタブを生成
 3. 5件のテストケースを含むソースを `write_member` で書き込み
 
-> ⚠️ **`zoned(9:0)` を使う理由**: フリーフォーマットRPGLEで `9S 0` と書くと、CCSID 5026環境でコンパイル時に `S` が文字化けし `CPF427D` エラーになります。フリーフォームでは `zoned(9:0)` と記述することで同じゾーン型を安全に指定できます。
-
-> 💡 **`CRTSRCPF` のポイント**:
-> - **`RCDLEN(112)`**: シーケンス番号(6)＋日付(6)＋ソースデータ(100)の合計。Free形式RPGLEは100桁必要なため、デフォルト(92)では行が切れてコンパイルエラーになります。
-> - **`IGCDTA(*YES)`**: 日本語環境でDBCS（全角）文字をソース内で使用する場合に必要です。
 
 ### 3.2 testing.json の配置をBobに依頼
 
@@ -365,17 +399,17 @@ STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください�
 1. `run_rpg_unit_test_suite` ツールがテストをコンパイル・実行
 2. 5件のテスト結果サマリーをチャットに表示
 
-**テストケースと期待値（税率 1.08 適用後）**:
+**テストケースと期待値（TAXTBL に税率 10% が登録されている前提）**:
 
 | テストケース | 内容 | 期待値 | テストの種別 |
 |------------|------|--------|-----------|
 | `testADDVAL_normal` | ADDVAL(100) | 200 | 正常系 |
 | `testADDVAL_zero` | ADDVAL(0) | 100 | 境界値（0入力） |
-| `testTAX_normal` | TAX(1000) | 1080（1000×1.08） | 正常系 |
-| `testTAX_truncate` | TAX(1050) | 1134（1050×1.08=1134.0 切り捨て） | 境界値（小数切り捨て） |
+| `testTAX_normal` | TAX(1000) | 1100（1000×1.1） | 正常系（TAXTBL 参照） |
+| `testTAX_truncate` | TAX(1050) | 1155（1050×1.1=1155.0 切り捨て） | 境界値（小数切り捨て） |
 | `testTAX_zero` | TAX(0) | 0 | 境界値（0入力） |
 
-> 💡 **テストケースの期待値について**: テストスイート生成時の初期値は税率 1.1（1100、1155）ですが、ステップ2で税率を 1.08 に改修した後は 1080・1134 に変わります。改修後にテストを実行してください。
+> 💡 **テストケースの期待値について**: TAXTBL に `TAX_RATE = 0.1000`（10%）が登録されている前提の期待値です。事前準備3でデータを投入済みであることを確認してからテストを実行してください。
 
 > ✅ **確認**: 5件すべてが **PASS** になることを確認してください。
 
@@ -399,12 +433,13 @@ STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 このラボを完了したら、以下を確認してください：
 
 - [ ] ワークスペースを Library List に切り替えられた
+- [ ] TAXTBL テーブルを作成して税率データ（10%）を投入できた
 - [ ] BobへのプロンプトでCALCUTLS（サービスプログラム）が作成できた
 - [ ] バインディングディレクトリー CALCBD が作成され CALCUTLS が登録できた
 - [ ] CALCUTIL（メインプログラム）がコンパイルできた
 - [ ] 5250の CALL コマンドで3パターンの動作確認ができた
 - [ ] `read_member` でソースを読み込み内容を把握できた
-- [ ] TAX プロシージャーの税率を 1.08 に改修・コンパイルできた
+- [ ] TAX プロシージャーを Embedded SQL で TAXTBL 参照に改修・コンパイルできた
 - [ ] `write_member` でIBM i に書き戻しできた
 - [ ] RPGUnit テストスイートを書き込みできた
 - [ ] `testing.json` を配置できた
@@ -437,12 +472,13 @@ run_rpg_unit_test_suite（テスト）
 
 | オブジェクト | 種別 | 役割 |
 |------------|------|------|
-| `CALCUTLS` | `*SRVPGM` | 計算ロジック（ADDVAL/TAX）を EXPORT |
+| `TAXTBL` | `*FILE` | 適用日付・税率を管理するテーブル |
+| `CALCUTLS` | `*SRVPGM` | 計算ロジック（ADDVAL/TAX）を EXPORT。TAX は TAXTBL を参照 |
 | `CALCBD` | `*BNDDIR` | サービスプログラムを一元管理 |
 | `CALCUTIL` | `*PGM` | 分岐ロジック・CALCBD 経由でCALCUTLS にバインド |
 | `CALCUTLT` | `*SRVPGM`（テスト） | CALCUTLS のプロシージャーを直接テスト |
 
-> 💡 **サービスプログラム分離のメリット**: `CALCUTLS` だけ差し替えれば `CALCUTIL` の再コンパイル不要。呼び出し側への影響なしにロジックを更新できます。
+> 💡 **データ駆動設計のメリット**: 税率変更は TAXTBL への INSERT だけで対応可能。`CALCUTLS` の再コンパイルは不要です。将来の税率も `APPLY_DATE` を未来日付で事前登録できます。
 
 ### Base Bob と PP4i の比較
 
