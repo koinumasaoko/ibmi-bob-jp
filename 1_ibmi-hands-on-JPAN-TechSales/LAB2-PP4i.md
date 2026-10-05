@@ -87,10 +87,27 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
      C                   RETURN
 ```
 
+**オブジェクト構成と呼び出し関係**:
+
+```mermaid
+graph TD
+    CALLER["5250 / 呼び出し元\nCALL CALCUTIL PARM(INPUT MODE)"]
+    PGM["CALCUTIL *PGM\nMODE分岐のみ\nBNDDIR('STUDYxx/CALCBD')"]
+    BNDDIR["CALCBD *BNDDIR\n↓ CALCUTLS を登録"]
+    SRVPGM["CALCUTLS *SRVPGM\nADDVAL: NUMBER + 100\nTAX: NUMBER × 1.1 切り捨て"]
+    TEST["CALCUTLT テストスイート\ntestADDVAL_normal\ntestADDVAL_zero\ntestTAX_normal\ntestTAX_truncate\ntestTAX_zero"]
+
+    CALLER -->|"CALL"| PGM
+    PGM -->|"静的バインド"| BNDDIR
+    BNDDIR -->|"解決"| SRVPGM
+    TEST -->|"直接呼び出し\nbndSrvPgm"| SRVPGM
+```
+
 **ポイント**:
 - `CALCUTLS`：`NOMAIN` + プロシージャーを `EXPORT` → RPGUnit から直接呼び出し可能
 - `CALCUTIL`：分岐ロジックのみ、`BNDDIR` で `CALCUTLS` に**静的バインド**
 - `CALCBD`：バインディングディレクトリー。`CALCUTLS` を登録しておくことで `CALCUTIL` がバインド先を解決する
+- **改修は `CALCUTLS` だけ**：`CALCUTIL` の再コンパイルなしに計算ロジックを差し替えられる
 
 ---
 
@@ -287,58 +304,21 @@ DSPLY  0000001080
 以下のプロンプトをBobに貼り付けてください：
 
 ```
-STUDYxx/QTESTSRC ソースファイルがなければ
-RCDLEN(112) IGCDTA(*YES) で作成してください。
-その後、以下のテストスイートを STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
-
-**free
-ctl-opt nomain;
-
-/include qinclude,TESTCASE
-
-dcl-pr ADDVAL          9S 0 extproc('ADDVAL');
-  number               9S 0 const;
-end-pr;
-
-dcl-pr TAX             9S 0 extproc('TAX');
-  number               9S 0 const;
-end-pr;
-
-dcl-proc testADDVAL_normal export;
-  dcl-pi *n extproc(*dclcase) end-pi;
-  dcl-s actual 9S 0;
-  actual = ADDVAL(100);
-  assertEqual(200 : actual);
-end-proc;
-
-dcl-proc testADDVAL_zero export;
-  dcl-pi *n extproc(*dclcase) end-pi;
-  dcl-s actual 9S 0;
-  actual = ADDVAL(0);
-  assertEqual(100 : actual);
-end-proc;
-
-dcl-proc testTAX_normal export;
-  dcl-pi *n extproc(*dclcase) end-pi;
-  dcl-s actual 9S 0;
-  actual = TAX(1000);
-  assertEqual(1080 : actual);
-end-proc;
-
-dcl-proc testTAX_truncate export;
-  dcl-pi *n extproc(*dclcase) end-pi;
-  dcl-s actual 9S 0;
-  actual = TAX(1050);
-  assertEqual(1134 : actual);
-end-proc;
-
-dcl-proc testTAX_zero export;
-  dcl-pi *n extproc(*dclcase) end-pi;
-  dcl-s actual 9S 0;
-  actual = TAX(0);
-  assertEqual(0 : actual);
-end-proc;
+STUDYXX/QEOLRPGLE の CALCUTLS に対する RPGUnit テストスイートを生成して、
+STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
+QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
+テストケースは以下の5件を含めてください：
+- testADDVAL_normal : ADDVAL(100) → 200
+- testADDVAL_zero   : ADDVAL(0)   → 100
+- testTAX_normal    : TAX(1000)   → 1080
+- testTAX_truncate  : TAX(1050)   → 1134
+- testTAX_zero      : TAX(0)      → 0
 ```
+
+**期待される動作**:
+1. `read_member` で `CALCUTLS` を取得してプロシージャー定義を解析
+2. `generate_rpg_unit_test_stub` でテストスタブを生成
+3. 5件のテストケースを含むソースを `write_member` で書き込み
 
 > 💡 **`CRTSRCPF` のポイント**:
 > - **`RCDLEN(112)`**: シーケンス番号(6)＋日付(6)＋ソースデータ(100)の合計。Free形式RPGLEは100桁必要なため、デフォルト(92)では行が切れてコンパイルエラーになります。
