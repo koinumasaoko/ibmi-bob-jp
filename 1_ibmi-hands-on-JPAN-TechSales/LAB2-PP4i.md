@@ -6,7 +6,7 @@
 
 PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で改修**し、**コンパイル**して**RPGUnitでテスト**する、一連の開発サイクルを体験します。
 
-**所要時間**: 20-25分  
+**所要時間**: 25-30分  
 **難易度**: ★★★☆☆（中級）  
 **使用モード**: IBM i Developer モード  
 **ワークスペース**: Library List
@@ -21,55 +21,80 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 - ✅ Bobへの自然言語指示によるRPGLEソース改修
 - ✅ `write_member` でIBM i に直接書き戻し
 - ✅ `execute_compile_action` によるコンパイル
+- ✅ ILE の **サービスプログラム**・**バインディングディレクトリー**の概念
 - ✅ **RPGUnit** によるユニットテストの生成と実行
 
 ---
 
 ## 📋 このラボで使うソース
 
-ラボ専用のシンプルなRPGLEプログラム `CALCUTIL` を使います。
+このラボでは2本のRPGLEソースを使います。
+
+### CALCUTLS（サービスプログラム）
+
+計算ロジックを持つサービスプログラムです。`ADDVAL`・`TAX` の2つのプロシージャーを `EXPORT` します。
 
 ```rpgle
-     H DFTACTGRP(*NO) ACTGRP(*CALLER)
+     H NOMAIN
      H*****************************************************************
-     H* CALCUTIL
+     H* CALCUTLS - 計算ユーティリティ サービスプログラム
      H*****************************************************************
-     D* プロトタイプの定義
-     D ADDVAL          PR             9S 0
-     D NUMBER                         9S 0
-     D* 変数の定義
-     D RESULT          S              9S 0
-     D INPUT           S              9S 0
-     C*****************************************************************
-     C* メイン処理
-     C*****************************************************************
-     C     *ENTRY        PLIST
-     C                   PARM                    INPUT
-     C*
-     C                   EVAL      RESULT = ADDVAL(INPUT)
-     C                   DSPLY                   RESULT
-     C                   SETON                                        LR
-     C                   RETURN
-     C*****************************************************************
-     C* サブ・プロシージャー
-     C*****************************************************************
-     P ADDVAL          B
-     D* パラメーターインターフェース
+     P ADDVAL          B                   EXPORT
      D ADDVAL          PI             9S 0
-     D NUMBER                         9S 0
+     D  NUMBER                        9S 0 CONST
      C*
      C                   RETURN    NUMBER + 100
      P ADDVAL          E
+     P TAX             B                   EXPORT
+     D TAX             PI             9S 0
+     D  NUMBER                        9S 0 CONST
+     D  WORK           S             11S 1
+     C*
+     C                   EVAL      WORK = NUMBER * 1.1
+     C                   RETURN    %INT(WORK)
+     P TAX             E
+```
+
+### CALCUTIL（メインプログラム）
+
+`MODE` パラメーターで処理を分岐し、`CALCUTLS` のプロシージャーを呼び出すメインプログラムです。バインディングディレクトリー `CALCBD` 経由で `CALCUTLS` に静的バインドします。
+
+```rpgle
+     H DFTACTGRP(*NO) ACTGRP(*CALLER)
+     H BNDDIR('STUDYxx/CALCBD')
+     H*****************************************************************
+     H* CALCUTIL - 計算ユーティリティ メインプログラム
+     H*****************************************************************
+     D* プロトタイプの定義（CALCUTLS のプロシージャー）
+     D ADDVAL          PR             9S 0
+     D  NUMBER                        9S 0 CONST
+     D TAX             PR             9S 0
+     D  NUMBER                        9S 0 CONST
+     D* 変数の定義
+     D RESULT          S              9S 0
+     D INPUT           S              9S 0
+     D MODE            S              1S 0
+     C     *ENTRY        PLIST
+     C                   PARM                    INPUT
+     C                   PARM                    MODE
+     C                   IF        MODE = 0
+     C                   EVAL      RESULT = ADDVAL(INPUT)
+     C                   ELSE
+     C                   EVAL      RESULT = TAX(INPUT)
+     C                   ENDIF
+     C                   DSPLY                   RESULT
+     C                   SETON                                        LR
+     C                   RETURN
 ```
 
 **ポイント**:
-- `ADDVAL` プロシージャ：引数に 100 を加算して返す
-- `DFTACTGRP(*NO)` により ILE プログラムとして動作
-- サブプロシージャをエクスポートすることで RPGUnit でテスト可能
+- `CALCUTLS`：`NOMAIN` + プロシージャーを `EXPORT` → RPGUnit から直接呼び出し可能
+- `CALCUTIL`：分岐ロジックのみ、`BNDDIR` で `CALCUTLS` に**静的バインド**
+- `CALCBD`：バインディングディレクトリー。`CALCUTLS` を登録しておくことで `CALCUTIL` がバインド先を解決する
 
 ---
 
-## 事前準備: ソースの作成とコンパイル（5分）
+## 🛠️ 事前準備: ソースの作成とコンパイル（8分）
 
 ### 準備1: ワークスペースを Library List に切り替え、ライブラリーリストを確認する
 
@@ -90,127 +115,81 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 - **チャットウィンドウ左下**のモード選択から **「IBM i Developer」** モードを選択
 
-### 準備3: ソースファイルの作成
+### 準備3: ソースの作成・コンパイル・バインディングディレクトリーの設定
 
-上記のソースを IBM i の `STUDYxx/QEOLRPGLE` に `CALCUTIL` メンバーとして登録します。
-
-以下のようにBobへ依頼してください：
+以下のプロンプトをそのままBobに貼り付けてください（`xx` は自分の番号）：
 
 ```
-STUDYxx/QEOLRPGLE に CALCUTIL メンバーを作成して、
-以下のソースを書き込んでください。書き込み後、コンパイルしてください。
+以下の手順をすべて実行してください。
 
-     H DFTACTGRP(*NO) ACTGRP(*CALLER)
+【1】STUDYxx/QEOLRPGLE に CALCUTLS メンバーを作成して以下のソースを書き込み、
+    モジュールを作成（CRTRPGMOD）してからサービスプログラム（CRTSRVPGM）を作成してください。
+    CRTSRVPGM のパラメーター: EXPORT(*ALL) ACTGRP(*CALLER)
+
+     H NOMAIN
      H*****************************************************************
-     H* CALCUTIL
+     H* CALCUTLS - 計算ユーティリティ サービスプログラム
      H*****************************************************************
-     D* プロトタイプの定義
-     D ADDVAL          PR             9S 0
-     D NUMBER                         9S 0
-     D* 変数の定義
-     D RESULT          S              9S 0
-     D INPUT           S              9S 0
-     C*****************************************************************
-     C* メイン処理
-     C*****************************************************************
-     C     *ENTRY        PLIST
-     C                   PARM                    INPUT
-     C*
-     C                   EVAL      RESULT = ADDVAL(INPUT)
-     C                   DSPLY                   RESULT
-     C                   SETON                                        LR
-     C                   RETURN
-     C*****************************************************************
-     C* サブ・プロシージャー
-     C*****************************************************************
-     P ADDVAL          B
-     D* パラメーターインターフェース
+     P ADDVAL          B                   EXPORT
      D ADDVAL          PI             9S 0
-     D NUMBER                         9S 0
+     D  NUMBER                        9S 0 CONST
      C*
      C                   RETURN    NUMBER + 100
      P ADDVAL          E
+     P TAX             B                   EXPORT
+     D TAX             PI             9S 0
+     D  NUMBER                        9S 0 CONST
+     D  WORK           S             11S 1
+     C*
+     C                   EVAL      WORK = NUMBER * 1.1
+     C                   RETURN    %INT(WORK)
+     P TAX             E
+
+【2】バインディングディレクトリー STUDYxx/CALCBD を作成し、
+    CALCUTLS (*SRVPGM) を登録してください。
+
+【3】STUDYxx/QEOLRPGLE に CALCUTIL メンバーを作成して以下のソースを書き込み、
+    CRTBNDRPG でコンパイルしてください。
+
+     H DFTACTGRP(*NO) ACTGRP(*CALLER)
+     H BNDDIR('STUDYxx/CALCBD')
+     H*****************************************************************
+     H* CALCUTIL - 計算ユーティリティ メインプログラム
+     H*****************************************************************
+     D* プロトタイプの定義（CALCUTLS のプロシージャー）
+     D ADDVAL          PR             9S 0
+     D  NUMBER                        9S 0 CONST
+     D TAX             PR             9S 0
+     D  NUMBER                        9S 0 CONST
+     D* 変数の定義
+     D RESULT          S              9S 0
+     D INPUT           S              9S 0
+     D MODE            S              1S 0
+     C     *ENTRY        PLIST
+     C                   PARM                    INPUT
+     C                   PARM                    MODE
+     C                   IF        MODE = 0
+     C                   EVAL      RESULT = ADDVAL(INPUT)
+     C                   ELSE
+     C                   EVAL      RESULT = TAX(INPUT)
+     C                   ENDIF
+     C                   DSPLY                   RESULT
+     C                   SETON                                        LR
+     C                   RETURN
 ```
 
-> ✅ **確認**: コンパイルが正常終了したことを確認してから次のステップへ進んでください。
+**期待される動作**:
+1. `write_member` で `CALCUTLS` ソースを書き込み
+2. `CRTRPGMOD` → `CRTSRVPGM` で `*SRVPGM` 作成
+3. `CRTBNDDIR` + `ADDBNDDIRE` でバインディングディレクトリー設定
+4. `write_member` で `CALCUTIL` ソースを書き込み
+5. `CRTBNDRPG` で `*PGM` 作成
+
+> ✅ **確認**: すべて正常終了したことを確認してから次のステップへ進んでください。
 
 ### 準備4: 5250でプログラムを呼び出して動作確認する
 
-コンパイルが完了したら、改修前のプログラムを実際に呼び出して動作を確認しておきます。
-
-5250エミュレーターで以下のコマンドを実行してください（`xx` は自分の番号）：
-
-```
-CALL STUDYxx/CALCUTIL PARM('000000100')
-```
-
-画面に以下のように表示されれば正常です：
-
-```
-DSPLY  0000000200
-```
-
-> 💡 **ポイント**: `ADDVAL` プロシージャが `100 + 100 = 200` を計算して `DSPLY` で表示しています。この動作を確認してからステップ1に進むことで、改修前後の変化がより分かりやすくなります。
-
-> ✅ **確認**: `DSPLY  0000000200` が表示されたことを確認してから次のステップへ進んでください。
-
----
-
-## ステップ1: ソースを読んで内容を確認する（3分）
-
-改修前に対象プログラムの内容をBobに読み込ませ、現状を把握します。
-
-以下のプロンプトをBobに貼り付けてください：
-
-```
-STUDYXX/QEOLRPGLE の CALCUTIL メンバーを読み込んで、
-このプログラムの処理内容を日本語で説明してください。
-```
-
-**期待される動作**:
-1. `read_member` ツールが `CALCUTIL` を IBM i から直接取得
-2. IBM i Developer モードのRPGスキルが解析
-3. プログラム全体の構造（メイン処理・サブプロシージャー）を日本語で説明
-
----
-
-## ステップ2: ソースを改修する（7分）
-
-`CALCUTIL` プログラムを以下の仕様で改修します。
-以下のプロンプトをそのままBobに貼り付けてください：
-
-```
-STUDYXX/QEOLRPGLE/CALCUTIL.RPGLE を以下の仕様で改修してコンパイルまでしてください。
-
-【改修仕様】
-1. *ENTRY PLIST のパラメーターを2つにする
-   - INPUT  (9S 0): 入力数値
-   - MODE   (1S 0): 0=加算モード、1=消費税モード
-
-2. メイン処理の分岐
-   - MODE = 0 のとき：ADDVAL サブプロシージャーを呼び出す（INPUT + 100）
-   - MODE = 1 のとき：TAX サブプロシージャーを呼び出す（INPUT × 1.1、小数点切り捨て）
-
-3. ADDVAL サブプロシージャーはそのまま（NUMBER + 100 を返す）
-
-4. TAX サブプロシージャーを新規追加
-   - パラメーター：NUMBER (9S 0) CONST
-   - 戻り値：NUMBER × 1.1 を 9S 0 で返す（小数切り捨て）
-```
-
-**期待される動作**:
-1. Bobが改修仕様を解析してソースを編集
-2. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
-3. `execute_compile_action` ツールが `CRTBNDRPG` を実行
-4. コンパイル結果（成功 / エラーメッセージ）をチャットに表示
-
-> 💡 **ポイント**: `write_member` ツールはPP4i固有です。Base Bobではソースをチャット上で確認するだけで、IBM i への書き戻しはできません。
-
-> ✅ **確認**: コンパイルが正常終了したことを確認してから次のステップへ進んでください。
-
-### 動作確認（5250）
-
-コンパイル後、5250エミュレーターで以下のパターンを実行して動作を確認してください（`xx` は自分の番号）：
+コンパイルが完了したら、5250エミュレーターで以下を実行して動作を確認します（`xx` は自分の番号）：
 
 **MODE=0: 加算モード（100 + 100 = 200）**
 ```
@@ -228,7 +207,7 @@ CALL PGM(STUDYxx/CALCUTIL) PARM('000001000' '1')
 DSPLY  0000001100
 ```
 
-**MODE=1: 消費税モード・小数切り捨て確認（1050 × 1.1 = 1155）**
+**MODE=1: 小数切り捨て確認（1050 × 1.1 = 1155）**
 ```
 CALL PGM(STUDYxx/CALCUTIL) PARM('000001050' '1')
 ```
@@ -236,62 +215,162 @@ CALL PGM(STUDYxx/CALCUTIL) PARM('000001050' '1')
 DSPLY  0000001155
 ```
 
-> 💡 **ポイント**: 3番目のパターンで小数点以下が切り捨てられていることを確認できます（1050 × 1.1 = 1155.0 → 1155）。
+> 💡 **ポイント**: 3番目のパターンで小数点以下が切り捨てられることを確認できます（1050 × 1.1 = 1155.0 → 1155）。
+
+> ✅ **確認**: 3パターンすべて期待通りに表示されたことを確認してから次のステップへ進んでください。
+
+---
+
+## ステップ1: ソースを読んで内容を確認する（3分）
+
+改修前に対象ソースの内容をBobに読み込ませ、現状を把握します。
+
+以下のプロンプトをBobに貼り付けてください：
+
+```
+STUDYXX/QEOLRPGLE の CALCUTLS と CALCUTIL メンバーを読み込んで、
+2つのプログラムの役割と関係を日本語で説明してください。
+```
+
+**期待される動作**:
+1. `read_member` ツールが `CALCUTLS`・`CALCUTIL` を IBM i から直接取得
+2. IBM i Developer モードのRPGスキルが解析
+3. サービスプログラムとメインプログラムの役割・静的バインドの関係を日本語で説明
+
+---
+
+## ステップ2: ソースを改修する（7分）
+
+`CALCUTLS` の `TAX` プロシージャーを改修します。  
+以下のプロンプトをそのままBobに貼り付けてください：
+
+```
+STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE を以下の仕様で改修して、
+サービスプログラムの再作成（CRTRPGMOD → CRTSRVPGM）まで実施してください。
+
+【改修仕様】
+1. TAX プロシージャーの消費税率を 1.1 から 1.08 に変更する
+   （税率8%への変更）
+
+2. ADDVAL プロシージャーはそのまま（NUMBER + 100 を返す）
+```
+
+**期待される動作**:
+1. Bobが改修仕様を解析して `CALCUTLS` ソースを編集
+2. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
+3. `CRTRPGMOD` → `CRTSRVPGM` でサービスプログラムを再作成
+
+> 💡 **ポイント**: `CALCUTIL`（`*PGM`）は変更不要です。サービスプログラム（`CALCUTLS`）だけ差し替えれば、呼び出し側の `CALCUTIL` は変更なく新しい計算ロジックを使えます。これが**サービスプログラム分離のメリット**です。
+
+> ✅ **確認**: コンパイルが正常終了したことを確認してから次のステップへ進んでください。
+
+### 動作確認（5250）
+
+改修後、5250エミュレーターで以下を実行して税率変更を確認します（`xx` は自分の番号）：
+
+**MODE=1: 消費税モード（1000 × 1.08 = 1080）**
+```
+CALL PGM(STUDYxx/CALCUTIL) PARM('000001000' '1')
+```
+```
+DSPLY  0000001080
+```
+
+> ✅ **確認**: 改修前の `1100` から `1080` に変わっていることを確認してください。
 
 ---
 
 ## ステップ3: RPGUnit でテストする（7分）
 
-### 3.1 テストスイートの生成をBobに依頼
+### 3.1 テストスイートの作成をBobに依頼
 
 以下のプロンプトをBobに貼り付けてください：
 
 ```
 STUDYxx/QTESTSRC ソースファイルがなければ
 RCDLEN(112) IGCDTA(*YES) で作成してください。
-その後、STUDYXX/QEOLRPGLE の CALCUTIL に対する
-RPGUnit テストスイートのスタブを生成して
-STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
-```
+その後、以下のテストスイートを STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
 
-**期待される動作**:
-1. `execute_cl_command` で `CRTSRCPF FILE(STUDYxx/QTESTSRC) RCDLEN(112) IGCDTA(*YES)` を実行（未作成の場合）
-2. `generate_rpg_unit_test_stub` ツールがテストスタブを自動生成
-3. `ADDVAL` / `TAX` プロシージャー用のテストケースひな形を提示
-4. `write_member` ツールで `STUDYxx/QTESTSRC/CALCUTLT` に書き込み
+**free
+ctl-opt nomain;
+
+/include qinclude,TESTCASE
+
+dcl-pr ADDVAL          9S 0 extproc('ADDVAL');
+  number               9S 0 const;
+end-pr;
+
+dcl-pr TAX             9S 0 extproc('TAX');
+  number               9S 0 const;
+end-pr;
+
+dcl-proc testADDVAL_normal export;
+  dcl-pi *n extproc(*dclcase) end-pi;
+  dcl-s actual 9S 0;
+  actual = ADDVAL(100);
+  assertEqual(200 : actual);
+end-proc;
+
+dcl-proc testADDVAL_zero export;
+  dcl-pi *n extproc(*dclcase) end-pi;
+  dcl-s actual 9S 0;
+  actual = ADDVAL(0);
+  assertEqual(100 : actual);
+end-proc;
+
+dcl-proc testTAX_normal export;
+  dcl-pi *n extproc(*dclcase) end-pi;
+  dcl-s actual 9S 0;
+  actual = TAX(1000);
+  assertEqual(1080 : actual);
+end-proc;
+
+dcl-proc testTAX_truncate export;
+  dcl-pi *n extproc(*dclcase) end-pi;
+  dcl-s actual 9S 0;
+  actual = TAX(1050);
+  assertEqual(1134 : actual);
+end-proc;
+
+dcl-proc testTAX_zero export;
+  dcl-pi *n extproc(*dclcase) end-pi;
+  dcl-s actual 9S 0;
+  actual = TAX(0);
+  assertEqual(0 : actual);
+end-proc;
+```
 
 > 💡 **`CRTSRCPF` のポイント**:
 > - **`RCDLEN(112)`**: シーケンス番号(6)＋日付(6)＋ソースデータ(100)の合計。Free形式RPGLEは100桁必要なため、デフォルト(92)では行が切れてコンパイルエラーになります。
-> - **`IGCDTA(*YES)`**: 日本語環境でDBCS（全角）文字をソース内のコメントや文字列に使用する場合に必要です。
+> - **`IGCDTA(*YES)`**: 日本語環境でDBCS（全角）文字をソース内で使用する場合に必要です。
 
-**生成されるテストスタブ（イメージ）**:
+### 3.2 testing.json の配置をBobに依頼
 
-```rpgle
-**FREE
-ctl-opt nomain;
+テストスイートをコンパイルする際に `CALCUTLS` をバインドするよう設定します。
 
-/copy RPGUNIT/QINCLUDE,TESTCASE
+```
+STUDYxx/QTESTSRC に TESTING メンバーを作成して、
+以下の内容を書き込んでください。
 
-dcl-pr ADDVAL int(10);
-  NUMBER int(10) const;
-end-pr;
-
-dcl-pr TAX int(10);
-  NUMBER int(10) const;
-end-pr;
-
-dcl-proc testADDVAL export;
-  dcl-pi *n end-pi;
-  aEqual(200 : ADDVAL(100));   // 100 + 100 = 200
-end-proc;
-
-dcl-proc testTAX export;
-  dcl-pi *n end-pi;
-  aEqual(110 : TAX(100));      // 100 * 1.1 = 110（小数切り捨て）
-end-proc;
+{
+  "rpgunit": {
+    "rucrtrpg": {
+      "bndSrvPgm": ["STUDYxx/CALCUTLS"],
+      "tgtCcsid": "*JOB",
+      "dbgView": "*SOURCE",
+      "rpgPpOpt": "*LVL2",
+      "cOption": ["*EVENTF"]
+    }
+  },
+  "codecov": {
+    "module": ["CALCUTLS"]
+  }
+}
 ```
 
-### 3.2 テストの実行
+> 💡 **`bndSrvPgm`**: テストスイート（`*SRVPGM`）をコンパイルするときに `CALCUTLS` をバインドする設定です。これにより `ADDVAL`・`TAX` プロシージャーをテストから直接呼び出せます。
+
+### 3.3 テストの実行
 
 ```
 STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください。
@@ -299,35 +378,42 @@ STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください�
 
 **期待される動作**:
 1. `run_rpg_unit_test_suite` ツールがテストをコンパイル・実行
-2. テスト結果サマリー（成功 / 失敗件数）をチャットに表示
+2. 5件のテスト結果サマリーをチャットに表示
 
-> ✅ **確認**: `testADDVAL` と `testTAX` が成功することを確認してください。
+**テストケースと期待値（税率 1.08 適用後）**:
 
-### 3.3 わざと失敗させてみる（オプション）
+| テストケース | 内容 | 期待値 |
+|------------|------|--------|
+| `testADDVAL_normal` | ADDVAL(100) | 200 |
+| `testADDVAL_zero` | ADDVAL(0) | 100 |
+| `testTAX_normal` | TAX(1000) | 1080 |
+| `testTAX_truncate` | TAX(1050) | 1134（1050×1.08=1134.0） |
+| `testTAX_zero` | TAX(0) | 0 |
 
-テストが失敗するとどうなるか確認してみましょう：
+> ✅ **確認**: 5件すべてが **PASS** になることを確認してください。
+
+### 3.4 わざと失敗させてみる（オプション）
+
+デグレード検知を体験してみましょう：
 
 ```
-CALCUTIL の TAX プロシージャーの計算式を NUMBER * 1.2 に変更してコンパイルし、
-テストを再実行してください。
+CALCUTLS の TAX プロシージャーの消費税率を 1.08 から 1.1 に戻して
+サービスプログラムを再作成してください。その後テストを再実行してください。
 ```
 
-テストが **FAIL** になり、期待値 `110` に対して実際の値 `120` がチャットに表示されます。  
-これがRPGUnitの「デグレード検知」です。
+`testTAX_normal` と `testTAX_truncate` が **FAIL** になり、期待値と実際の値の差がチャットに表示されます。これがRPGUnitの「デグレード検知」です。
 
 ---
 
 ## 🔍 オプション: コードレビューで改修ポイントを把握する（5分）
 
 スラッシュコマンド `/review_RPG` を使って、Bobにコードレビューを依頼します。
-改修前のソースに対して実行すると、改修すべき観点が一覧で確認できます。
-
-以下のプロンプトをBobに貼り付けてください：
 
 ```
 /review_RPG
-STUDYXX/QEOLRPGLE/CALCUTIL.RPGLE
+STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 ```
+
 > 💡 **ポイント**: `/review_RPG` はPP4iのスラッシュコマンドです。IBM i Developer モードで使えるコードレビュー専用の機能です。
 
 ---
@@ -337,12 +423,16 @@ STUDYXX/QEOLRPGLE/CALCUTIL.RPGLE
 このラボを完了したら、以下を確認してください：
 
 - [ ] ワークスペースを Library List に切り替えられた
+- [ ] BobへのプロンプトでCALCUTLS（サービスプログラム）が作成できた
+- [ ] バインディングディレクトリー CALCBD が作成され CALCUTLS が登録できた
+- [ ] CALCUTIL（メインプログラム）がコンパイルできた
+- [ ] 5250の CALL コマンドで3パターンの動作確認ができた
 - [ ] `read_member` でソースを読み込み内容を把握できた
-- [ ] 改修仕様プロンプトを貼り付けてBobがソースを改修できた
+- [ ] TAX プロシージャーの税率を 1.08 に改修・コンパイルできた
 - [ ] `write_member` でIBM i に書き戻しできた
-- [ ] コンパイルが成功した
-- [ ] RPGUnit テストスタブを生成できた
-- [ ] RPGUnit テストを実行して **PASS** を確認できた
+- [ ] RPGUnit テストスイートを書き込みできた
+- [ ] `testing.json` を配置できた
+- [ ] RPGUnit テストを実行して5件 **PASS** を確認できた
 - [ ] （オプション）意図的に FAIL させてデグレード検知を体験した
 - [ ] （オプション）`/review_RPG` でコードレビューを実施した
 
@@ -365,6 +455,17 @@ run_rpg_unit_test_suite（テスト）
 
 ※ /review_RPG（コードレビュー）はオプションで任意のタイミングで実行可能
 ```
+
+### ILE プログラム構成の基礎
+
+| オブジェクト | 種別 | 役割 |
+|------------|------|------|
+| `CALCUTLS` | `*SRVPGM` | 計算ロジック（ADDVAL/TAX）を EXPORT |
+| `CALCBD` | `*BNDDIR` | サービスプログラムを一元管理 |
+| `CALCUTIL` | `*PGM` | 分岐ロジック・CALCBD 経由でCALCUTLS にバインド |
+| `CALCUTLT` | `*SRVPGM`（テスト） | CALCUTLS のプロシージャーを直接テスト |
+
+> 💡 **サービスプログラム分離のメリット**: `CALCUTLS` だけ差し替えれば `CALCUTIL` の再コンパイル不要。呼び出し側への影響なしにロジックを更新できます。
 
 ### Base Bob と PP4i の比較
 
