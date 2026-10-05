@@ -359,7 +359,12 @@ QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成
 
 ### 3.2 testing.json の配置をBobに依頼
 
-テストスイートをコンパイルする際に `CALCUTLS` をバインドするよう設定します。
+> 💡 **testing.json とは？**
+> RPGUnit がテストスイートをコンパイル・実行するときの設定ファイルです。
+> `CALCUTLT`（テストスイート）は `CALCUTLS` のプロシージャーを直接呼び出しますが、そのためにはコンパイル時に `CALCUTLS` をバインドする必要があります。
+> この設定を `QTESTSRC/TESTING` メンバー（JSON形式）に書いておくと、PP4i の `run_rpg_unit_test_suite` ツールが自動的に読み込んで使用します。
+
+以下のプロンプトをBobに貼り付けてください：
 
 ```
 STUDYxx/QTESTSRC に TESTING メンバーを作成して、
@@ -381,7 +386,7 @@ STUDYxx/QTESTSRC に TESTING メンバーを作成して、
 }
 ```
 
-> 💡 **`bndSrvPgm`**: テストスイート（`*SRVPGM`）をコンパイルするときに `CALCUTLS` をバインドする設定です。これにより `ADDVAL`・`TAX` プロシージャーをテストから直接呼び出せます。
+> 💡 **`bndSrvPgm`**: テストスイートのコンパイル時に `CALCUTLS` をバインドする指定です。これにより `ADDVAL`・`TAX` プロシージャーをテストから直接呼び出せます。
 
 ### 3.3 テストの実行
 
