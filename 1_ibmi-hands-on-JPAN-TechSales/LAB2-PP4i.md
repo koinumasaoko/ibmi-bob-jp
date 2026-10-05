@@ -141,16 +141,14 @@ STUDYxx ライブラリーに消費税テーブルを作成してデータを投
 
 【1】以下の SQL でテーブルを作成
 CREATE TABLE STUDYxx/TAXTBL (
-  TKEY        CHAR(1)      NOT NULL,
-  TAX_RATE    DECIMAL(5,4) NOT NULL,
-  PRIMARY KEY (TKEY)
+  TAX_RATE    DECIMAL(5,4) NOT NULL
 )
 
 【2】以下の SQL でデータを投入
-INSERT INTO STUDYxx/TAXTBL VALUES ('1', 0.1000)
+INSERT INTO STUDYxx/TAXTBL VALUES (0.1000)
 ```
 
-> 💡 **TAXTBL の設計**: `TKEY`（固定キー '1'）と `TAX_RATE`（税率）の2列構成です。RPGから `CHAIN '1' TAXTBL` で1件取得します。税率変更は `UPDATE SET TAX_RATE = 0.08` だけで完了し、`CALCUTLS` の再コンパイルは不要です。
+> 💡 **TAXTBL の設計**: 現在の税率を1行だけ持つ1列構成です。TAX プロシージャーは `OPEN TAXTBL` → `READ TAXTBL` で税率を取得 → `CLOSE TAXTBL` します。税率変更は `UPDATE STUDYxx/TAXTBL SET TAX_RATE = 0.08` だけで完了し、`CALCUTLS` の再コンパイルは不要です。
 
 > ✅ **確認**: テーブル作成とデータ投入が正常終了したことを確認してから次のステップへ進んでください。
 
@@ -294,15 +292,15 @@ CRTSRVPGM のパラメーター: EXPORT(*ALL) ACTGRP(*CALLER)
 TAX プロシージャーを以下のように変更する。
 
 - 消費税率をハードコードするのではなく、STUDYxx/TAXTBL から
-  CHAIN 命令で TAX_RATE を取得する
-- F仕様書に TAXTBL を追加する（キー付き入力ファイル）
-- CHAIN '1' TAXTBL でレコードを取得し、TAX_RATE を読み込む
+  READ 命令で TAX_RATE を1件読み込む
+- F仕様書に TAXTBL を追加する（入力ファイル、フルオープン、USROPN）
+- プロシージャー開始時に OPEN TAXTBL、READ TAXTBL で TAX_RATE を取得後に CLOSE TAXTBL する
 - 読み込んだ TAX_RATE を NUMBER に掛けて %INT で小数切り捨てした値を返す
 - ADDVAL プロシージャーはそのまま（NUMBER + 100 を返す）
 ```
 
 **期待される動作**:
-1. Bobが改修仕様を解析して `CALCUTLS` ソースを編集（F仕様・CHAIN 追加）
+1. Bobが改修仕様を解析して `CALCUTLS` ソースを編集（F仕様・OPEN/READ/CLOSE 追加）
 2. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
 3. `CRTRPGMOD` → `CRTSRVPGM` でサービスプログラムを再作成
 
