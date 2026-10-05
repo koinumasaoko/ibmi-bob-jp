@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" width="900" height="460" font-family="'IBM Plex Sans JP', 'Noto Sans JP', sans-serif">
+
+  <!-- Background -->
+  <rect width="900" height="460" fill="#f4f4f4" rx="8"/>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" fill="#161616" font-size="14" font-weight="bold">オブジェクト構成と呼び出し関係</text>
+
+  <!-- ===== 5250 CALLER ===== -->
+  <rect x="300" y="50" width="260" height="55" rx="6" fill="#e8daff" stroke="#8a3ffc" stroke-width="1.5"/>
+  <text x="430" y="72" text-anchor="middle" fill="#491d8b" font-size="12" font-weight="bold">5250 / 呼び出し元</text>
+  <text x="430" y="92" text-anchor="middle" fill="#491d8b" font-size="10">CALL CALCUTIL PARM(INPUT MODE)</text>
+
+  <!-- Arrow: CALLER -> CALCUTIL -->
+  <line x1="430" y1="105" x2="430" y2="133" stroke="#6f6f6f" stroke-width="1.5"/>
+  <polygon points="424,133 430,145 436,133" fill="#6f6f6f"/>
+  <text x="444" y="123" fill="#6f6f6f" font-size="10">CALL</text>
+
+  <!-- ===== CALCUTIL *PGM ===== -->
+  <rect x="270" y="145" width="320" height="65" rx="6" fill="#d0e2ff" stroke="#0f62fe" stroke-width="1.5"/>
+  <text x="430" y="167" text-anchor="middle" fill="#003a8c" font-size="12" font-weight="bold">CALCUTIL  *PGM</text>
+  <text x="430" y="185" text-anchor="middle" fill="#003a8c" font-size="10">MODE=0 → ADDVAL 呼び出し</text>
+  <text x="430" y="200" text-anchor="middle" fill="#003a8c" font-size="10">MODE=1 → TAX 呼び出し</text>
+
+  <!-- CALCBD 注釈（コンパイル時のみ） -->
+  <rect x="620" y="150" width="190" height="55" rx="5" fill="#e0e0e0" stroke="#a8a8a8" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="715" y="169" text-anchor="middle" fill="#525252" font-size="9" font-style="italic">コンパイル時のみ参照</text>
+  <text x="715" y="184" text-anchor="middle" fill="#525252" font-size="11" font-weight="bold">CALCBD  *BNDDIR</text>
+  <text x="715" y="198" text-anchor="middle" fill="#525252" font-size="9">CALCUTLS のバインド先を解決</text>
+  <!-- 注釈への破線矢印 -->
+  <line x1="590" y1="172" x2="618" y2="172" stroke="#a8a8a8" stroke-width="1" stroke-dasharray="3,3"/>
+  <polygon points="614,168 618,172 614,176" fill="#a8a8a8"/>
+
+  <!-- Arrow: CALCUTIL -> CALCUTLS (実行時) -->
+  <line x1="430" y1="210" x2="430" y2="243" stroke="#6f6f6f" stroke-width="1.5"/>
+  <polygon points="424,243 430,255 436,243" fill="#6f6f6f"/>
+  <text x="444" y="231" fill="#6f6f6f" font-size="10">プロシージャー呼び出し</text>
+
+  <!-- ===== CALCUTLS *SRVPGM ===== -->
+  <rect x="200" y="255" width="460" height="70" rx="6" fill="#d0e2ff" stroke="#0f62fe" stroke-width="2"/>
+  <text x="430" y="277" text-anchor="middle" fill="#003a8c" font-size="12" font-weight="bold">CALCUTLS  *SRVPGM</text>
+  <text x="320" y="298" text-anchor="middle" fill="#003a8c" font-size="10">ADDVAL(NUMBER)</text>
+  <text x="320" y="314" text-anchor="middle" fill="#003a8c" font-size="10">NUMBER + 100 を返す</text>
+  <text x="540" y="298" text-anchor="middle" fill="#003a8c" font-size="10">TAX(NUMBER)</text>
+  <text x="540" y="314" text-anchor="middle" fill="#003a8c" font-size="10">TAXTBL参照 × NUMBER</text>
+  <!-- Divider -->
+  <line x1="430" y1="263" x2="430" y2="325" stroke="#0f62fe" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Arrow: CALCUTLS(TAX) -> TAXTBL -->
+  <line x1="660" y1="290" x2="700" y2="290" stroke="#da1e28" stroke-width="1.5"/>
+  <polygon points="696,284 700,290 696,296" fill="#da1e28"/>
+  <text x="730" y="280" fill="#da1e28" font-size="9" text-anchor="middle">READ TAXTBL</text>
+  <text x="730" y="292" fill="#da1e28" font-size="9" text-anchor="middle">TAX_RATE 取得</text>
+
+  <!-- ===== TAXTBL *FILE ===== -->
+  <rect x="700" y="255" width="175" height="70" rx="6" fill="#fff1f1" stroke="#da1e28" stroke-width="2"/>
+  <text x="787" y="278" text-anchor="middle" fill="#750e13" font-size="12" font-weight="bold">TAXTBL  *FILE</text>
+  <text x="787" y="297" text-anchor="middle" fill="#750e13" font-size="10">TAX_RATE（1行のみ）</text>
+  <text x="787" y="312" text-anchor="middle" fill="#750e13" font-size="10">UPDATE で税率変更</text>
+  <!-- STEP2 バッジ -->
+  <rect x="712" y="320" width="150" height="18" rx="9" fill="#da1e28"/>
+  <text x="787" y="333" text-anchor="middle" fill="white" font-size="10" font-weight="bold">★ ステップ2で追加</text>
+
+  <!-- ===== CALCUTLT テストスイート ===== -->
+  <rect x="20" y="255" width="155" height="105" rx="6" fill="#fdf4e8" stroke="#f1c21b" stroke-width="1.5"/>
+  <text x="97" y="275" text-anchor="middle" fill="#6e3107" font-size="11" font-weight="bold">CALCUTLT</text>
+  <text x="97" y="290" text-anchor="middle" fill="#6e3107" font-size="9">テストスイート</text>
+  <text x="97" y="308" text-anchor="middle" fill="#6e3107" font-size="9">testADDVAL_normal</text>
+  <text x="97" y="322" text-anchor="middle" fill="#6e3107" font-size="9">testADDVAL_zero</text>
+  <text x="97" y="336" text-anchor="middle" fill="#6e3107" font-size="9">testTAX_normal / truncate / zero</text>
+  <text x="97" y="352" text-anchor="middle" fill="#b45309" font-size="8">bndSrvPgm: CALCUTLS</text>
+
+  <!-- Arrow: CALCUTLT -> CALCUTLS -->
+  <line x1="175" y1="308" x2="198" y2="308" stroke="#6f6f6f" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <polygon points="194,302 198,308 194,314" fill="#6f6f6f"/>
+  <text x="100" y="375" fill="#6f6f6f" font-size="9" text-anchor="middle">直接呼び出し (bndSrvPgm)</text>
+
+  <!-- Legend -->
+  <rect x="20" y="390" width="220" height="55" rx="4" fill="white" stroke="#c6c6c6" stroke-width="1"/>
+  <text x="30" y="407" fill="#6f6f6f" font-size="10" font-weight="bold">凡例</text>
+  <line x1="30" y1="418" x2="65" y2="418" stroke="#6f6f6f" stroke-width="1.5"/>
+  <text x="72" y="421" fill="#6f6f6f" font-size="10">実行時の呼び出し</text>
+  <line x1="30" y1="432" x2="65" y2="432" stroke="#6f6f6f" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="72" y="435" fill="#6f6f6f" font-size="10">テスト時の呼び出し</text>
+  <rect x="30" y="440" width="12" height="6" rx="3" fill="#a8a8a8"/>
+  <text x="50" y="447" fill="#6f6f6f" font-size="10">コンパイル時のみ</text>
+
+</svg>

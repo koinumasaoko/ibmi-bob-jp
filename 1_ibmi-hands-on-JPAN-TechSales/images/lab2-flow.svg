@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 200" width="1100" height="200" font-family="'IBM Plex Sans JP', 'Noto Sans JP', sans-serif">
+
+  <!-- Background -->
+  <rect width="1100" height="200" fill="#f4f4f4" rx="8"/>
+
+  <!-- Step boxes -->
+  <!-- 準備 -->
+  <rect x="20" y="40" width="150" height="120" rx="8" fill="#0f62fe" stroke="none"/>
+  <text x="95" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="bold">事前準備</text>
+  <text x="95" y="100" text-anchor="middle" fill="#a6c8ff" font-size="10">TAXTBL作成</text>
+  <text x="95" y="116" text-anchor="middle" fill="#a6c8ff" font-size="10">CALCUTLS/CALCUTIL</text>
+  <text x="95" y="132" text-anchor="middle" fill="#a6c8ff" font-size="10">コンパイル</text>
+  <text x="95" y="148" text-anchor="middle" fill="#a6c8ff" font-size="10">5250で動作確認</text>
+
+  <!-- Arrow 1 -->
+  <polygon points="178,100 194,92 194,108" fill="#6f6f6f"/>
+  <line x1="170" y1="100" x2="194" y2="100" stroke="#6f6f6f" stroke-width="2"/>
+
+  <!-- Step 1 -->
+  <rect x="200" y="40" width="150" height="120" rx="8" fill="#0043ce" stroke="none"/>
+  <text x="275" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="bold">ステップ1</text>
+  <text x="275" y="100" text-anchor="middle" fill="#a6c8ff" font-size="10">ソースを読む</text>
+  <text x="275" y="116" text-anchor="middle" fill="#a6c8ff" font-size="10">read_member で</text>
+  <text x="275" y="132" text-anchor="middle" fill="#a6c8ff" font-size="10">CALCUTLS/CALCUTIL</text>
+  <text x="275" y="148" text-anchor="middle" fill="#a6c8ff" font-size="10">の内容を把握</text>
+
+  <!-- Arrow 2 -->
+  <polygon points="358,100 374,92 374,108" fill="#6f6f6f"/>
+  <line x1="350" y1="100" x2="374" y2="100" stroke="#6f6f6f" stroke-width="2"/>
+
+  <!-- Step 2 -->
+  <rect x="380" y="40" width="150" height="120" rx="8" fill="#0043ce" stroke="none"/>
+  <text x="455" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="bold">ステップ2</text>
+  <text x="455" y="100" text-anchor="middle" fill="#a6c8ff" font-size="10">ソースを改修</text>
+  <text x="455" y="116" text-anchor="middle" fill="#a6c8ff" font-size="10">TAX を Embedded SQL</text>
+  <text x="455" y="132" text-anchor="middle" fill="#a6c8ff" font-size="10">TAXTBL参照に変更</text>
+  <text x="455" y="148" text-anchor="middle" fill="#a6c8ff" font-size="10">CRTRPGMOD+CRTSRVPGM</text>
+
+  <!-- Arrow 3 -->
+  <polygon points="538,100 554,92 554,108" fill="#6f6f6f"/>
+  <line x1="530" y1="100" x2="554" y2="100" stroke="#6f6f6f" stroke-width="2"/>
+
+  <!-- Step 3 -->
+  <rect x="560" y="40" width="150" height="120" rx="8" fill="#0043ce" stroke="none"/>
+  <text x="635" y="80" text-anchor="middle" fill="white" font-size="12" font-weight="bold">ステップ3</text>
+  <text x="635" y="100" text-anchor="middle" fill="#a6c8ff" font-size="10">RPGUnitでテスト</text>
+  <text x="635" y="116" text-anchor="middle" fill="#a6c8ff" font-size="10">テストスイート生成</text>
+  <text x="635" y="132" text-anchor="middle" fill="#a6c8ff" font-size="10">testing.json 配置</text>
+  <text x="635" y="148" text-anchor="middle" fill="#a6c8ff" font-size="10">5件 PASS を確認</text>
+
+  <!-- Arrow 4 -->
+  <polygon points="718,100 734,92 734,108" fill="#6f6f6f"/>
+  <line x1="710" y1="100" x2="734" y2="100" stroke="#6f6f6f" stroke-width="2"/>
+
+  <!-- Option -->
+  <rect x="740" y="40" width="150" height="120" rx="8" fill="#393939" stroke="none"/>
+  <text x="815" y="72" text-anchor="middle" fill="#8d8d8d" font-size="10">オプション</text>
+  <text x="815" y="90" text-anchor="middle" fill="white" font-size="12" font-weight="bold">コードレビュー</text>
+  <text x="815" y="110" text-anchor="middle" fill="#c6c6c6" font-size="10">/review_RPG で</text>
+  <text x="815" y="126" text-anchor="middle" fill="#c6c6c6" font-size="10">CALCUTLS を</text>
+  <text x="815" y="142" text-anchor="middle" fill="#c6c6c6" font-size="10">レビュー</text>
+
+  <!-- Arrow 5 -->
+  <polygon points="898,100 914,92 914,108" fill="#6f6f6f"/>
+  <line x1="890" y1="100" x2="914" y2="100" stroke="#6f6f6f" stroke-width="2"/>
+
+  <!-- Complete -->
+  <rect x="920" y="40" width="155" height="120" rx="8" fill="#198038" stroke="none"/>
+  <text x="997" y="88" text-anchor="middle" fill="white" font-size="13" font-weight="bold">ラボ完了</text>
+  <text x="997" y="110" text-anchor="middle" fill="#a7f0ba" font-size="10">改修・テストサイクルを</text>
+  <text x="997" y="126" text-anchor="middle" fill="#a7f0ba" font-size="10">PP4i で体験完了!</text>
+
+  <!-- Time labels -->
+  <text x="95" y="175" text-anchor="middle" fill="#6f6f6f" font-size="10">~8分</text>
+  <text x="275" y="175" text-anchor="middle" fill="#6f6f6f" font-size="10">~3分</text>
+  <text x="455" y="175" text-anchor="middle" fill="#6f6f6f" font-size="10">~10分</text>
+  <text x="635" y="175" text-anchor="middle" fill="#6f6f6f" font-size="10">~7分</text>
+  <text x="815" y="175" text-anchor="middle" fill="#6f6f6f" font-size="10">~5分</text>
+</svg>

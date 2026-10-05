@@ -240,10 +240,17 @@ PP4iのインストールから接続・ライブラリーリスト設定・HTML
 
 📝 [LAB1-PP4iを始める](./LAB1-PP4i.md)
 
-#### LAB2-PP4i: ソース改修・テスト 🔧 (工事中 🚧)
+#### LAB2-PP4i: ソース改修・テスト 🔧
 **IBM i Developer モード・Library List ワークスペース**
 
-PP4iを使ってIBM i 上のRPGソースを直接改修し、RPGUnitでテストを実行する開発サイクルを体験します。
+PP4iを使ってIBM i 上のRPGLEソースを自然言語指示で改修し、RPGUnitでテストを実行する開発サイクルを体験します。
+
+**学べること:**
+- `read_member` / `write_member` によるIBM i ソースの直接取得・保存
+- Bobへの自然言語指示によるRPGLEソース改修とコンパイル
+- ILEサービスプログラム・バインディングディレクトリーの概念
+- データ駆動設計（税率テーブルをREAD命令で参照）
+- RPGUnit テストスイートの生成と実行
 
 📝 [LAB2-PP4iを始める](./LAB2-PP4i.md)
 
