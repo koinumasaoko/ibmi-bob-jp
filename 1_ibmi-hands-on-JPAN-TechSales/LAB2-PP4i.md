@@ -6,7 +6,7 @@
 
 PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で改修**し、**コンパイル**して**RPGUnitでテスト**する、一連の開発サイクルを体験します。
 
-**所要時間**: 15-20分  
+**所要時間**: 20-25分  
 **難易度**: ★★★☆☆（中級）  
 **使用モード**: IBM i Developer モード  
 **ワークスペース**: Library List
@@ -27,160 +27,242 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 ## 📋 このラボで使うソース
 
-ラボ専用のシンプルなRPGLEプログラム `ADDVAL` を使います。
+ラボ専用のシンプルなRPGLEプログラム `CALCUTIL` を使います。
 
 ```rpgle
-     H DFTACTGRP(*NO) ACTGRP(*NEW)
-
-     * プロトタイプの定義
-    D ADDVAL      PR             9Z 0
-    D                                9Z 0
-
-     * 変数の定義
-    D RESULT          S              9Z 0
-    D INPUT           S              9Z 0
-
-     * メイン処理
-    C     *ENTRY        PLIST
-    C                   PARM                    INPUT
-    C*
-    C                   EVAL      RESULT = ADDVAL(INPUT)
-    C                   DSPLY                   RESULT
-    C                   SETON                                        LR
-    C                   RETURN
-
-     * ここからサブ・プロシージャー
-    P ADDVAL      B
-     * パラメーターインターフェース
-    D ADDVAL      PI             9Z 0
-    D  NUMBER                        9Z 0
-    C*
-    C                   RETURN    NUMBER + 100
-    P                 E
+     H DFTACTGRP(*NO) ACTGRP(*CALLER)
+     H*****************************************************************
+     H* CALCUTIL
+     H*****************************************************************
+     D* プロトタイプの定義
+     D ADDVAL          PR             9S 0
+     D NUMBER                         9S 0
+     D* 変数の定義
+     D RESULT          S              9S 0
+     D INPUT           S              9S 0
+     C*****************************************************************
+     C* メイン処理
+     C*****************************************************************
+     C     *ENTRY        PLIST
+     C                   PARM                    INPUT
+     C*
+     C                   EVAL      RESULT = ADDVAL(INPUT)
+     C                   DSPLY                   RESULT
+     C                   SETON                                        LR
+     C                   RETURN
+     C*****************************************************************
+     C* サブ・プロシージャー
+     C*****************************************************************
+     P ADDVAL          B
+     D* パラメーターインターフェース
+     D ADDVAL          PI             9S 0
+     D NUMBER                         9S 0
+     C*
+     C                   RETURN    NUMBER + 100
+     P ADDVAL          E
 ```
 
 **ポイント**:
 - `ADDVAL` プロシージャ：引数に 100 を加算して返す
 - `DFTACTGRP(*NO)` により ILE プログラムとして動作
-- エクスポートプロシージャなので RPGUnit でテスト可能
+- サブプロシージャをエクスポートすることで RPGUnit でテスト可能
 
 ---
 
-## ステップ1: 事前準備（3分）
+## 事前準備: ソースの作成とコンパイル（5分）
 
-### 1.1 ソースファイルの作成とメンバーの転送
+### 準備1: ワークスペースを Library List に切り替え、ライブラリーリストを確認する
 
-このソースを IBM i の `STUDYxx/QEOLRPGLE` に `ADDVAL` メンバーとして登録します。
+1. チャット入力欄の上部にある **New Task** をクリック
+2. **「Library List」** を選択
+3. 以下のライブラリーが含まれていることを確認
+
+| ライブラリー | 用途 |
+|------------|------|
+| `STUDYxx` | ソースメンバーの格納先（`xx` は割り当てられた自分の番号） |
+| `RPGUNIT` | RPGUnit テストフレームワーク |
+
+> 💡 **`STUDYxx` について**: `xx` はハンズオン参加者ごとに割り当てられた番号です。例：`STUDY01`、`STUDY02` など。LAB1 で複製した自分の `STUDYxx` ライブラリーを使用します。
+
+> ⚠️ **`RPGUNIT` がリストにない場合**: IBM i の接続設定（Library List）に `RPGUNIT` を追加してください。RPGUnit テスト（ステップ3）の実行時に必要です。
+
+### 準備2: IBM i Developer モードを選択
+
+- **チャットウィンドウ左下**のモード選択から **「IBM i Developer」** モードを選択
+
+### 準備3: ソースファイルの作成
+
+上記のソースを IBM i の `STUDYxx/QEOLRPGLE` に `CALCUTIL` メンバーとして登録します。
 
 以下のようにBobへ依頼してください：
 
 ```
-STUDYxx/QEOLRPGLE に ADDVAL メンバーを作成して、
-以下のソースを書き込んでください。
+STUDYxx/QEOLRPGLE に CALCUTIL メンバーを作成して、
+以下のソースを書き込んでください。書き込み後、コンパイルしてください。
 
-     H DFTACTGRP(*NO) ACTGRP(*NEW)
-
-     * プロトタイプの定義
-    D ADDVAL      PR             9Z 0
-    D                                9Z 0
-
-     * 変数の定義
-    D RESULT          S              9Z 0
-    D INPUT           S              9Z 0
-
-     * メイン処理
-    C     *ENTRY        PLIST
-    C                   PARM                    INPUT
-    C*
-    C                   EVAL      RESULT = ADDVAL(INPUT)
-    C                   DSPLY                   RESULT
-    C                   SETON                                        LR
-    C                   RETURN
-
-     * ここからサブ・プロシージャー
-    P ADDVAL      B
-     * パラメーターインターフェース
-    D ADDVAL      PI             9Z 0
-    D  NUMBER                        9Z 0
-    C*
-    C                   RETURN    NUMBER + 100
-    P                 E
+     H DFTACTGRP(*NO) ACTGRP(*CALLER)
+     H*****************************************************************
+     H* CALCUTIL
+     H*****************************************************************
+     D* プロトタイプの定義
+     D ADDVAL          PR             9S 0
+     D NUMBER                         9S 0
+     D* 変数の定義
+     D RESULT          S              9S 0
+     D INPUT           S              9S 0
+     C*****************************************************************
+     C* メイン処理
+     C*****************************************************************
+     C     *ENTRY        PLIST
+     C                   PARM                    INPUT
+     C*
+     C                   EVAL      RESULT = ADDVAL(INPUT)
+     C                   DSPLY                   RESULT
+     C                   SETON                                        LR
+     C                   RETURN
+     C*****************************************************************
+     C* サブ・プロシージャー
+     C*****************************************************************
+     P ADDVAL          B
+     D* パラメーターインターフェース
+     D ADDVAL          PI             9S 0
+     D NUMBER                         9S 0
+     C*
+     C                   RETURN    NUMBER + 100
+     P ADDVAL          E
 ```
 
-### 1.2 ワークスペースを Library List に切り替える
+> ✅ **確認**: コンパイルが正常終了したことを確認してから次のステップへ進んでください。
 
-1. チャット入力欄の上部にある **New Task** をクリック
-2. **「Library List」** を選択
-3. `STUDYxx` ライブラリーが含まれていることを確認
+### 準備4: 5250でプログラムを呼び出して動作確認する
 
-### 1.3 IBM i Developer モードを選択
+コンパイルが完了したら、改修前のプログラムを実際に呼び出して動作を確認しておきます。
 
-1. **チャットウィンドウ左下**のモード選択から **「IBM i Developer」** モードを選択
+5250エミュレーターで以下のコマンドを実行してください（`xx` は自分の番号）：
+
+```
+CALL STUDYxx/CALCUTIL PARM('000000100')
+```
+
+画面に以下のように表示されれば正常です：
+
+```
+DSPLY  0000000200
+```
+
+> 💡 **ポイント**: `ADDVAL` プロシージャが `100 + 100 = 200` を計算して `DSPLY` で表示しています。この動作を確認してからステップ1に進むことで、改修前後の変化がより分かりやすくなります。
+
+> ✅ **確認**: `DSPLY  0000000200` が表示されたことを確認してから次のステップへ進んでください。
 
 ---
 
-## ステップ2: ソースを読み込んで内容を把握する（3分）
+## ステップ1: ソースを読んで内容を確認する（3分）
 
 改修前に対象プログラムの内容をBobに読み込ませ、現状を把握します。
 
+以下のプロンプトをBobに貼り付けてください：
+
 ```
-STUDYxx/QEOLRPGLE の ADDVAL メンバーを読み込んで、
+STUDYXX/QEOLRPGLE の CALCUTIL メンバーを読み込んで、
 このプログラムの処理内容を日本語で説明してください。
 ```
 
 **期待される動作**:
-1. `read_member` ツールが `ADDVAL` を IBM i から直接取得
+1. `read_member` ツールが `CALCUTIL` を IBM i から直接取得
 2. IBM i Developer モードのRPGスキルが解析
-3. `ADDVAL` プロシージャの動作を日本語で説明
+3. プログラム全体の構造（メイン処理・サブプロシージャー）を日本語で説明
 
 ---
 
-## ステップ3: ソースを改修する（5分）
+## ステップ2: ソースを改修する（7分）
 
-`ADDVAL` プロシージャの加算値を **100 → 200** に変更します。
-
-### 3.1 改修内容の指示
+`CALCUTIL` プログラムを以下の仕様で改修します。
+以下のプロンプトをそのままBobに貼り付けてください：
 
 ```
-ADDVAL の ADDVAL プロシージャの加算値を 100 から 200 に変更してください。
-変更後のソースを STUDYxx/QEOLRPGLE の ADDVAL メンバーに書き戻してください。
+STUDYXX/QEOLRPGLE/CALCUTIL.RPGLE を以下の仕様で改修してコンパイルまでしてください。
+
+【改修仕様】
+1. *ENTRY PLIST のパラメーターを2つにする
+   - INPUT  (9S 0): 入力数値
+   - MODE   (1S 0): 0=加算モード、1=消費税モード
+
+2. メイン処理の分岐
+   - MODE = 0 のとき：ADDVAL サブプロシージャーを呼び出す（INPUT + 100）
+   - MODE = 1 のとき：TAX サブプロシージャーを呼び出す（INPUT × 1.1、小数点切り捨て）
+
+3. ADDVAL サブプロシージャーはそのまま（NUMBER + 100 を返す）
+
+4. TAX サブプロシージャーを新規追加
+   - パラメーター：NUMBER (9S 0) CONST
+   - 戻り値：NUMBER × 1.1 を 9S 0 で返す（小数切り捨て）
 ```
 
 **期待される動作**:
-1. Bobが `RETURN NUMBER + 100` の行を特定
-2. `RETURN NUMBER + 200` に変更
-3. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
+1. Bobが改修仕様を解析してソースを編集
+2. `write_member` ツールで IBM i のソースメンバーに直接書き戻し
+3. `execute_compile_action` ツールが `CRTBNDRPG` を実行
+4. コンパイル結果（成功 / エラーメッセージ）をチャットに表示
 
 > 💡 **ポイント**: `write_member` ツールはPP4i固有です。Base Bobではソースをチャット上で確認するだけで、IBM i への書き戻しはできません。
 
-### 3.2 コンパイル
+> ✅ **確認**: コンパイルが正常終了したことを確認してから次のステップへ進んでください。
 
+### 動作確認（5250）
+
+コンパイル後、5250エミュレーターで以下のパターンを実行して動作を確認してください（`xx` は自分の番号）：
+
+**MODE=0: 加算モード（100 + 100 = 200）**
 ```
-STUDYxx/QEOLRPGLE の ADDVAL をコンパイルしてください。
+CALL PGM(STUDYxx/CALCUTIL) PARM('000000100' '0')
+```
+```
+DSPLY  0000000200
 ```
 
-**期待される動作**:
-1. `execute_compile_action` ツールが `CRTBNDRPG` を実行
-2. コンパイル結果（成功 / エラーメッセージ）をチャットに表示
-3. エラーがあればBobが原因を説明・修正を提案
+**MODE=1: 消費税モード（1000 × 1.1 = 1100）**
+```
+CALL PGM(STUDYxx/CALCUTIL) PARM('000001000' '1')
+```
+```
+DSPLY  0000001100
+```
 
-> ✅ **確認**: コンパイルが正常終了したことを確認してください。
+**MODE=1: 消費税モード・小数切り捨て確認（1050 × 1.1 = 1155）**
+```
+CALL PGM(STUDYxx/CALCUTIL) PARM('000001050' '1')
+```
+```
+DSPLY  0000001155
+```
+
+> 💡 **ポイント**: 3番目のパターンで小数点以下が切り捨てられていることを確認できます（1050 × 1.1 = 1155.0 → 1155）。
 
 ---
 
-## ステップ4: RPGUnit でテストする（7分）
+## ステップ3: RPGUnit でテストする（7分）
 
-### 4.1 テストスイートの生成をBobに依頼
+### 3.1 テストスイートの生成をBobに依頼
+
+以下のプロンプトをBobに貼り付けてください：
 
 ```
-STUDYxx/QEOLRPGLE の ADDVAL に対する
-RPGUnit テストスイートのスタブを生成してください。
+STUDYxx/QTESTSRC ソースファイルがなければ
+RCDLEN(112) IGCDTA(*YES) で作成してください。
+その後、STUDYXX/QEOLRPGLE の CALCUTIL に対する
+RPGUnit テストスイートのスタブを生成して
+STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
 ```
 
 **期待される動作**:
-1. `generate_rpg_unit_test_stub` ツールがテストスタブを自動生成
-2. `ADDVAL` プロシージャ用のテストケースひな形を提示
-3. テストファイルの保存先（例：`STUDYxx/QEOLRPGLE/ADDVALT`）を提案
+1. `execute_cl_command` で `CRTSRCPF FILE(STUDYxx/QTESTSRC) RCDLEN(112) IGCDTA(*YES)` を実行（未作成の場合）
+2. `generate_rpg_unit_test_stub` ツールがテストスタブを自動生成
+3. `ADDVAL` / `TAX` プロシージャー用のテストケースひな形を提示
+4. `write_member` ツールで `STUDYxx/QTESTSRC/CALCUTLT` に書き込み
+
+> 💡 **`CRTSRCPF` のポイント**:
+> - **`RCDLEN(112)`**: シーケンス番号(6)＋日付(6)＋ソースデータ(100)の合計。Free形式RPGLEは100桁必要なため、デフォルト(92)では行が切れてコンパイルエラーになります。
+> - **`IGCDTA(*YES)`**: 日本語環境でDBCS（全角）文字をソース内のコメントや文字列に使用する場合に必要です。
 
 **生成されるテストスタブ（イメージ）**:
 
@@ -188,41 +270,65 @@ RPGUnit テストスイートのスタブを生成してください。
 **FREE
 ctl-opt nomain;
 
-/copy QUSRTOOL/QRPGLESRC,TESTCASE
+/copy RPGUNIT/QINCLUDE,TESTCASE
 
 dcl-pr ADDVAL int(10);
   NUMBER int(10) const;
 end-pr;
 
-dcl-proc testAddHundred export;
+dcl-pr TAX int(10);
+  NUMBER int(10) const;
+end-pr;
+
+dcl-proc testADDVAL export;
   dcl-pi *n end-pi;
-  aEqual(300 : ADDVAL(100));   // 100 + 200 = 300
+  aEqual(200 : ADDVAL(100));   // 100 + 100 = 200
+end-proc;
+
+dcl-proc testTAX export;
+  dcl-pi *n end-pi;
+  aEqual(110 : TAX(100));      // 100 * 1.1 = 110（小数切り捨て）
 end-proc;
 ```
 
-### 4.2 テストの実行
+### 3.2 テストの実行
 
 ```
-STUDYxx/QEOLRPGLE の ADDVALT テストスイートを実行してください。
+STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください。
 ```
 
 **期待される動作**:
 1. `run_rpg_unit_test_suite` ツールがテストをコンパイル・実行
 2. テスト結果サマリー（成功 / 失敗件数）をチャットに表示
 
-> ✅ **確認**: `testAddHundred` が成功することを確認してください。
+> ✅ **確認**: `testADDVAL` と `testTAX` が成功することを確認してください。
 
-### 4.3 わざと失敗させてみる（オプション）
+### 3.3 わざと失敗させてみる（オプション）
 
 テストが失敗するとどうなるか確認してみましょう：
 
 ```
-ADDVAL の ADDVAL プロシージャの加算値を 300 に変更してコンパイルし、
+CALCUTIL の TAX プロシージャーの計算式を NUMBER * 1.2 に変更してコンパイルし、
 テストを再実行してください。
 ```
 
-テストが **FAIL** になり、期待値 `300` に対して実際の値 `400` がチャットに表示されます。  
+テストが **FAIL** になり、期待値 `110` に対して実際の値 `120` がチャットに表示されます。  
 これがRPGUnitの「デグレード検知」です。
+
+---
+
+## 🔍 オプション: コードレビューで改修ポイントを把握する（5分）
+
+スラッシュコマンド `/review_RPG` を使って、Bobにコードレビューを依頼します。
+改修前のソースに対して実行すると、改修すべき観点が一覧で確認できます。
+
+以下のプロンプトをBobに貼り付けてください：
+
+```
+/review_RPG
+STUDYXX/QEOLRPGLE/CALCUTIL.RPGLE
+```
+> 💡 **ポイント**: `/review_RPG` はPP4iのスラッシュコマンドです。IBM i Developer モードで使えるコードレビュー専用の機能です。
 
 ---
 
@@ -232,12 +338,13 @@ ADDVAL の ADDVAL プロシージャの加算値を 300 に変更してコンパ
 
 - [ ] ワークスペースを Library List に切り替えられた
 - [ ] `read_member` でソースを読み込み内容を把握できた
-- [ ] Bobへの指示でソースを改修（100→200加算）できた
+- [ ] 改修仕様プロンプトを貼り付けてBobがソースを改修できた
 - [ ] `write_member` でIBM i に書き戻しできた
 - [ ] コンパイルが成功した
 - [ ] RPGUnit テストスタブを生成できた
 - [ ] RPGUnit テストを実行して **PASS** を確認できた
 - [ ] （オプション）意図的に FAIL させてデグレード検知を体験した
+- [ ] （オプション）`/review_RPG` でコードレビューを実施した
 
 ---
 
@@ -255,6 +362,8 @@ write_member（書き戻し）
 execute_compile_action（コンパイル）
     ↓
 run_rpg_unit_test_suite（テスト）
+
+※ /review_RPG（コードレビュー）はオプションで任意のタイミングで実行可能
 ```
 
 ### Base Bob と PP4i の比較
@@ -262,6 +371,7 @@ run_rpg_unit_test_suite（テスト）
 | 作業 | Base Bob | PP4i |
 |-----|---------|------|
 | ソース取得 | 手動でコピー＆ペースト | `read_member` で自動取得 |
+| コードレビュー | ソース貼り付けが必要 | `/review_RPG` で自動取得・分析 |
 | ソース改修 | ローカルで編集 | チャットで指示→自動編集 |
 | IBM i への反映 | 手動でアップロード | `write_member` で自動書き戻し |
 | コンパイル | 手動でCLコマンド | `execute_compile_action` |
@@ -271,7 +381,7 @@ run_rpg_unit_test_suite（テスト）
 
 ## 🎉 ラボ完了！
 
-お疲れ様でした！PP4iを使ったRPGLEソースの改修・テストサイクルを体験しました。
+お疲れ様でした！PP4iを使ったRPGLEソースのレビュー・改修・テストサイクルを体験しました。
 
 ### 次のステップ
 
