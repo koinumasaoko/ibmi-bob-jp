@@ -6,10 +6,16 @@
 
 PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で改修**し、**コンパイル**して**RPGUnitでテスト**する、一連の開発サイクルを体験します。
 
-**所要時間**: 25-30分  
-**難易度**: ★★★☆☆（中級）  
-**使用モード**: IBM i Developer モード  
+**所要時間**: 25-30分
+**難易度**: ★★★☆☆（中級）
+**使用モード**: IBM i Developer モード
 **ワークスペース**: Library List
+
+---
+
+## 🗺️ このラボの全体の流れ
+
+![ラボの全体フロー](./lab2-flow.svg)
 
 ---
 
@@ -92,21 +98,7 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 **オブジェクト構成と呼び出し関係**:
 
-```mermaid
-graph TD
-    CALLER["5250 / 呼び出し元\nCALL CALCUTIL PARM(INPUT MODE)"]
-    PGM["CALCUTIL *PGM\nMODE分岐のみ\nBNDDIR('STUDYxx/CALCBD')"]
-    BNDDIR["CALCBD *BNDDIR\n↓ CALCUTLS を登録"]
-    SRVPGM["CALCUTLS *SRVPGM\nADDVAL: NUMBER + 100\nTAX: TAXTBL から税率取得して計算"]
-    TAXTBL["TAXTBL *FILE\nAPPLY_DATE / TAX_RATE\n当日以前の最新税率を管理"]
-    TEST["CALCUTLT テストスイート\ntestADDVAL_normal\ntestADDVAL_zero\ntestTAX_normal\ntestTAX_truncate\ntestTAX_zero"]
-
-    CALLER -->|"CALL"| PGM
-    PGM -->|"静的バインド"| BNDDIR
-    BNDDIR -->|"解決"| SRVPGM
-    SRVPGM -->|"Embedded SQL\nSELECT 最新税率"| TAXTBL
-    TEST -->|"直接呼び出し\nbndSrvPgm"| SRVPGM
-```
+![オブジェクト構成と呼び出し関係](./lab2-objects.svg)
 
 **ポイント**:
 - `CALCUTLS`：`NOMAIN` + プロシージャーを `EXPORT` → RPGUnit から直接呼び出し可能
