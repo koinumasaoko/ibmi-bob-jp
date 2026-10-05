@@ -25,8 +25,8 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 - ✅ `read_member` でIBM i からソースを直接読み込み
 - ✅ Bobへの自然言語指示によるRPGLEソース改修
-- ✅ `write_member` でIBM i に直接書き戻し
-- ✅ `execute_compile_action` によるコンパイル
+- ✅ `write_member` でIBM i のソースメンバーに直接保存
+- ✅ Bobへの指示でコンパイルまで自動実行（`CRTRPGMOD`+`CRTSRVPGM` / `CRTBNDRPG` など）
 - ✅ ILE の **サービスプログラム**・**バインディングディレクトリー**の概念（静的バインド = コンパイル時に呼び出し先を確定する仕組み）
 - ✅ **データ駆動設計**：税率をテーブル（TAXTBL）で管理し、`READ` 命令で動的に取得
 - ✅ **RPGUnit** によるユニットテストの生成と実行
@@ -75,13 +75,13 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
      H* CALCUTIL - 計算ユーティリティ メインプログラム
      H*****************************************************************
      D* プロトタイプの定義（CALCUTLS のプロシージャー）
-     D ADDVAL          PR             9P 0
-     D  NUMBER                        9P 0 CONST
-     D TAX             PR             9P 0
-     D  NUMBER                        9P 0 CONST
+     D ADDVAL          PR             9S 0
+     D  NUMBER                        9S 0 CONST
+     D TAX             PR             9S 0
+     D  NUMBER                        9S 0 CONST
      D* 変数の定義
-     D RESULT          S              9P 0
-     D INPUT           S              9P 0
+     D RESULT          S              9S 0
+     D INPUT           S              9S 0
      D MODE            S              1S 0
      C     *ENTRY        PLIST
      C                   PARM                    INPUT
@@ -279,7 +279,7 @@ STUDYXX/QEOLRPGLE の CALCUTLS と CALCUTIL メンバーを読み込んで、
 ## ステップ2: ソースを改修する（10分）
 
 `CALCUTLS` の `TAX` プロシージャーを改修します。
-税率をハードコードするのではなく、**消費税テーブル（TAXTBL）から当日以前の最新税率を動的に取得する**実装に変えます。
+税率をハードコードするのではなく、**消費税テーブル（TAXTBL）から税率を READ 命令で取得する**実装に変えます。
 
 以下のプロンプトをそのままBobに貼り付けてください：
 
@@ -443,7 +443,7 @@ STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 - [ ] CALCUTIL（メインプログラム）がコンパイルできた
 - [ ] 5250の CALL コマンドで3パターンの動作確認ができた
 - [ ] `read_member` でソースを読み込み内容を把握できた
-- [ ] TAX プロシージャーを Embedded SQL で TAXTBL 参照に改修・コンパイルできた
+- [ ] TAX プロシージャーを READ 命令で TAXTBL 参照に改修・コンパイルできた
 - [ ] `write_member` でIBM i に書き戻しできた
 - [ ] `testing.json` を配置できた
 - [ ] RPGUnit テストスイートを書き込みできた
@@ -457,15 +457,16 @@ STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 ### PP4i の開発サイクル
 
 ```
-read_member（取得）
+read_member（ソース取得）
     ↓
 Bob に改修を指示（自然言語）
     ↓
-write_member（書き戻し）
+write_member（編集したソースを IBM i に保存）
     ↓
-execute_compile_action（コンパイル）
+Bob がコンパイル
+（CRTRPGMOD+CRTSRVPGM / CRTBNDRPG など状況に応じて自動選択）
     ↓
-run_rpg_unit_test_suite（テスト）
+run_rpg_unit_test_suite（RPGUnit テスト実行）
 
 ※ /review_RPG（コードレビュー）はオプションで任意のタイミングで実行可能
 ```
@@ -474,13 +475,13 @@ run_rpg_unit_test_suite（テスト）
 
 | オブジェクト | 種別 | 役割 |
 |------------|------|------|
-| `TAXTBL` | `*FILE` | 適用日付・税率を管理するテーブル |
-| `CALCUTLS` | `*SRVPGM` | 計算ロジック（ADDVAL/TAX）を EXPORT。TAX は TAXTBL を参照 |
+| `TAXTBL` | `*FILE` | 現在の税率（TAX_RATE）を1行で管理するテーブル |
+| `CALCUTLS` | `*SRVPGM` | 計算ロジック（ADDVAL/TAX）を EXPORT。TAX は TAXTBL を READ で参照 |
 | `CALCBD` | `*BNDDIR` | サービスプログラムを一元管理 |
 | `CALCUTIL` | `*PGM` | 分岐ロジック・CALCBD 経由でCALCUTLS にバインド |
 | `CALCUTLT` | `*SRVPGM`（テスト） | CALCUTLS のプロシージャーを直接テスト |
 
-> 💡 **データ駆動設計のメリット**: 税率変更は TAXTBL への INSERT だけで対応可能。`CALCUTLS` の再コンパイルは不要です。将来の税率も `APPLY_DATE` を未来日付で事前登録できます。
+> 💡 **データ駆動設計のメリット**: 税率変更は `UPDATE TAXTBL SET TAX_RATE = 0.08` だけで対応可能。`CALCUTLS` の再コンパイルは不要です。
 
 ### Base Bob と PP4i の比較
 
@@ -489,8 +490,8 @@ run_rpg_unit_test_suite（テスト）
 | ソース取得 | 手動でコピー＆ペースト | `read_member` で自動取得 |
 | コードレビュー | ソース貼り付けが必要 | `/review_RPG` で自動取得・分析 |
 | ソース改修 | ローカルで編集 | チャットで指示→自動編集 |
-| IBM i への反映 | 手動でアップロード | `write_member` で自動書き戻し |
-| コンパイル | 手動でCLコマンド | `execute_compile_action` |
+| IBM i への反映 | 手動でアップロード | `write_member` で自動保存 |
+| コンパイル | 手動でCLコマンド | Bobが状況に応じてCLコマンドを自動実行 |
 | テスト実行 | 手動でRPGUnit起動 | `run_rpg_unit_test_suite` |
 
 ---
