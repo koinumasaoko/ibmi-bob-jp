@@ -334,35 +334,13 @@ DSPLY  0000001100
 
 ## ステップ3: RPGUnit でテストする（7分）
 
-### 3.1 テストスイートの作成をBobに依頼
-
-以下のプロンプトをBobに貼り付けてください：
-
-```
-STUDYXX/QEOLRPGLE の CALCUTLS に対する RPGUnit テストスイートを生成して、
-STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
-QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
-テストケースは以下の5件を含めてください：
-- testADDVAL_normal : ADDVAL(100) → 200
-- testADDVAL_zero   : ADDVAL(0)   → 100
-- testTAX_normal    : TAX(1000)   → 1100
-- testTAX_truncate  : TAX(1050)   → 1155
-- testTAX_zero      : TAX(0)      → 0
-パラメーターの型は zoned(9:0) を使用してください。
-```
-
-**期待される動作**:
-1. `read_member` で `CALCUTLS` を取得してプロシージャー定義を解析
-2. `generate_rpg_unit_test_stub` でテストスタブを生成
-3. 5件のテストケースを含むソースを `write_member` で書き込み
-
-
-### 3.2 testing.json の配置をBobに依頼
+### 3.1 testing.json の配置をBobに依頼
 
 > 💡 **testing.json とは？**
 > RPGUnit がテストスイートをコンパイル・実行するときの設定ファイルです。
 > `CALCUTLT`（テストスイート）は `CALCUTLS` のプロシージャーを直接呼び出しますが、そのためにはコンパイル時に `CALCUTLS` をバインドする必要があります。
 > この設定を `QTESTSRC/TESTING` メンバー（JSON形式）に書いておくと、PP4i の `run_rpg_unit_test_suite` ツールが自動的に読み込んで使用します。
+> **テストスイートを書き込む前に先に配置しておくのがポイントです。**
 
 以下のプロンプトをBobに貼り付けてください：
 
@@ -387,6 +365,31 @@ STUDYxx/QTESTSRC に TESTING メンバーを作成して、
 ```
 
 > 💡 **`bndSrvPgm`**: テストスイートのコンパイル時に `CALCUTLS` をバインドする指定です。これにより `ADDVAL`・`TAX` プロシージャーをテストから直接呼び出せます。
+
+> ✅ **確認**: `TESTING` メンバーが作成されたことを確認してから次へ進んでください。
+
+### 3.2 テストスイートの作成をBobに依頼
+
+以下のプロンプトをBobに貼り付けてください：
+
+```
+STUDYXX/QEOLRPGLE の CALCUTLS に対する RPGUnit テストスイートを生成して、
+STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
+QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
+テストケースは以下の5件を含めてください：
+- testADDVAL_normal : ADDVAL(100) → 200
+- testADDVAL_zero   : ADDVAL(0)   → 100
+- testTAX_normal    : TAX(1000)   → 1100
+- testTAX_truncate  : TAX(1050)   → 1155
+- testTAX_zero      : TAX(0)      → 0
+パラメーターの型は zoned(9:0) を使用してください。
+テストスイートの書き込みのみ行い、コンパイル・実行はしないでください。
+```
+
+**期待される動作**:
+1. `read_member` で `CALCUTLS` を取得してプロシージャー定義を解析
+2. `generate_rpg_unit_test_stub` でテストスタブを生成
+3. 5件のテストケースを含むソースを `write_member` で書き込み（コンパイル・実行はしない）
 
 ### 3.3 テストの実行
 
@@ -440,8 +443,8 @@ STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 - [ ] `read_member` でソースを読み込み内容を把握できた
 - [ ] TAX プロシージャーを Embedded SQL で TAXTBL 参照に改修・コンパイルできた
 - [ ] `write_member` でIBM i に書き戻しできた
-- [ ] RPGUnit テストスイートを書き込みできた
 - [ ] `testing.json` を配置できた
+- [ ] RPGUnit テストスイートを書き込みできた
 - [ ] RPGUnit テストを実行して5件 **PASS** を確認できた
 - [ ] （オプション）`/review_RPG` でコードレビューを実施した
 
