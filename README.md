@@ -126,9 +126,11 @@ IBM Bobは、理解や変換を助けるAIアシスタントにとどまらず�
 
 ## 📝 コンテンツ一覧
 
-| ディレクトリ | 内容 | 対象 | 状態 |
+| ディレクトリ / ファイル | 内容 | 対象 | 状態 |
 |------------|------|------|------|
-| [1_ibmi-hands-on-JPAN-TechSales](./1_ibmi-hands-on-JPAN-TechSales/) | IBM i開発ハンズオン（LAB1〜3 + PP4i）<br>基礎編：コード理解・修正・作成・PP4i基本操作 | 初心者〜中級者 | ✅ 公開中 |
+| [1_ibmi-hands-on-JPAN-TechSales](./1_ibmi-hands-on-JPAN-TechSales/) | IBM i開発ハンズオン（LAB1〜3 + PP4i）<br>基礎編：コード理解・修正・作成・PP4i操作 | 初心者〜中級者 | ✅ 公開中 |
+| └ [LAB1-PP4i](./1_ibmi-hands-on-JPAN-TechSales/LAB1-PP4i.md) | PP4i基本操作（インストール・接続・HTML設計書生成） | 初心者〜中級者 | ✅ 公開中 |
+| └ [LAB2-PP4i](./1_ibmi-hands-on-JPAN-TechSales/LAB2-PP4i.md) | PP4iでソース改修・テスト（RPGLEソース改修・RPGUnit） | 中級者 | ✅ 公開中 |
 | [2_ibmi-hands-on-EMEA-CE-ja](./2_ibmi-hands-on-EMEA-CE-ja/) | アプリケーションモダナイゼーション<br>RPG変換・UI刷新・SQL移行 | 初心者〜中級者 | ✅ 公開中 |
 
 ## 🤝 コントリビューション
