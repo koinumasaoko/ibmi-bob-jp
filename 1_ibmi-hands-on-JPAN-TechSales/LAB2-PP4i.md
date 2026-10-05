@@ -40,20 +40,22 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
      H* CALCUTLS - 計算ユーティリティ サービスプログラム
      H*****************************************************************
      P ADDVAL          B                   EXPORT
-     D ADDVAL          PI             9S 0
-     D  NUMBER                        9S 0 CONST
+     D ADDVAL          PI             9P 0
+     D  NUMBER                        9P 0 CONST
      C*
      C                   RETURN    NUMBER + 100
      P ADDVAL          E
      P TAX             B                   EXPORT
-     D TAX             PI             9S 0
-     D  NUMBER                        9S 0 CONST
-     D  WORK           S             11S 1
+     D TAX             PI             9P 0
+     D  NUMBER                        9P 0 CONST
+     D  WORK           S             11P 1
      C*
      C                   EVAL      WORK = NUMBER * 1.1
      C                   RETURN    %INT(WORK)
      P TAX             E
 ```
+
+> ⚠️ **パラメーター型は `9P 0`（パック）を使用**: フリーフォーマットのテストスイートと型を合わせるため、ゾーン（`9S 0`）ではなくパック（`9P 0`）で定義しています。CCSID 5026環境では `S`（ゾーン型指定子）がフリーフォーマットRPGLEのコンパイル時に文字化けする場合があるため、パック型で統一するのが安全です。
 
 ### CALCUTIL（メインプログラム）
 
@@ -66,13 +68,13 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
      H* CALCUTIL - 計算ユーティリティ メインプログラム
      H*****************************************************************
      D* プロトタイプの定義（CALCUTLS のプロシージャー）
-     D ADDVAL          PR             9S 0
-     D  NUMBER                        9S 0 CONST
-     D TAX             PR             9S 0
-     D  NUMBER                        9S 0 CONST
+     D ADDVAL          PR             9P 0
+     D  NUMBER                        9P 0 CONST
+     D TAX             PR             9P 0
+     D  NUMBER                        9P 0 CONST
      D* 変数の定義
-     D RESULT          S              9S 0
-     D INPUT           S              9S 0
+     D RESULT          S              9P 0
+     D INPUT           S              9P 0
      D MODE            S              1S 0
      C     *ENTRY        PLIST
      C                   PARM                    INPUT
@@ -310,15 +312,18 @@ QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成
 テストケースは以下の5件を含めてください：
 - testADDVAL_normal : ADDVAL(100) → 200
 - testADDVAL_zero   : ADDVAL(0)   → 100
-- testTAX_normal    : TAX(1000)   → 1080
-- testTAX_truncate  : TAX(1050)   → 1134
+- testTAX_normal    : TAX(1000)   → 1100
+- testTAX_truncate  : TAX(1050)   → 1155
 - testTAX_zero      : TAX(0)      → 0
+パラメーターの型は packed(9:0) を使用してください。
 ```
 
 **期待される動作**:
 1. `read_member` で `CALCUTLS` を取得してプロシージャー定義を解析
 2. `generate_rpg_unit_test_stub` でテストスタブを生成
 3. 5件のテストケースを含むソースを `write_member` で書き込み
+
+> ⚠️ **`packed(9:0)` を使う理由**: フリーフォーマットRPGLEで `9S 0` と書くと、CCSID 5026環境でコンパイル時に `S` が文字化けしてエラーになります。`packed(9:0)` はCCSID変換の影響を受けないため安全です。
 
 > 💡 **`CRTSRCPF` のポイント**:
 > - **`RCDLEN(112)`**: シーケンス番号(6)＋日付(6)＋ソースデータ(100)の合計。Free形式RPGLEは100桁必要なため、デフォルト(92)では行が切れてコンパイルエラーになります。
@@ -362,26 +367,17 @@ STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください�
 
 **テストケースと期待値（税率 1.08 適用後）**:
 
-| テストケース | 内容 | 期待値 |
-|------------|------|--------|
-| `testADDVAL_normal` | ADDVAL(100) | 200 |
-| `testADDVAL_zero` | ADDVAL(0) | 100 |
-| `testTAX_normal` | TAX(1000) | 1080 |
-| `testTAX_truncate` | TAX(1050) | 1134（1050×1.08=1134.0） |
-| `testTAX_zero` | TAX(0) | 0 |
+| テストケース | 内容 | 期待値 | テストの種別 |
+|------------|------|--------|-----------|
+| `testADDVAL_normal` | ADDVAL(100) | 200 | 正常系 |
+| `testADDVAL_zero` | ADDVAL(0) | 100 | 境界値（0入力） |
+| `testTAX_normal` | TAX(1000) | 1080（1000×1.08） | 正常系 |
+| `testTAX_truncate` | TAX(1050) | 1134（1050×1.08=1134.0 切り捨て） | 境界値（小数切り捨て） |
+| `testTAX_zero` | TAX(0) | 0 | 境界値（0入力） |
+
+> 💡 **テストケースの期待値について**: テストスイート生成時の初期値は税率 1.1（1100、1155）ですが、ステップ2で税率を 1.08 に改修した後は 1080・1134 に変わります。改修後にテストを実行してください。
 
 > ✅ **確認**: 5件すべてが **PASS** になることを確認してください。
-
-### 3.4 わざと失敗させてみる（オプション）
-
-デグレード検知を体験してみましょう：
-
-```
-CALCUTLS の TAX プロシージャーの消費税率を 1.08 から 1.1 に戻して
-サービスプログラムを再作成してください。その後テストを再実行してください。
-```
-
-`testTAX_normal` と `testTAX_truncate` が **FAIL** になり、期待値と実際の値の差がチャットに表示されます。これがRPGUnitの「デグレード検知」です。
 
 ---
 
@@ -413,8 +409,9 @@ STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
 - [ ] RPGUnit テストスイートを書き込みできた
 - [ ] `testing.json` を配置できた
 - [ ] RPGUnit テストを実行して5件 **PASS** を確認できた
-- [ ] （オプション）意図的に FAIL させてデグレード検知を体験した
 - [ ] （オプション）`/review_RPG` でコードレビューを実施した
+
+> ⚠️ **つまずきポイント**: フリーフォーマットRPGLEのテストスイートでパラメーター型を指定するときは `packed(9:0)` を使ってください。`9S 0` と書くと CCSID 5026 環境でコンパイル時に `S` が文字化けし `CPF427D` エラーになります。サービスプログラム側（CALCUTLS）のパラメーター型も `9P 0`（パック）に統一することでテストスイートとの型不一致（MCH1202）を防げます。
 
 ---
 
