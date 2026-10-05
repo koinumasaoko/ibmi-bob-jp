@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPH210 プログラム仕様書 ― 得意先照会</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --ibm-blue: #0f62fe;
+      --ibm-dark: #161616;
+      --ibm-mid: #393939;
+      --ibm-cool-gray: #f4f4f4;
+      --ibm-border: #e0e0e0;
+      --ibm-accent: #0043ce;
+      --ibm-green: #24a148;
+      --ibm-red: #da1e28;
+      --ibm-yellow: #f1c21b;
+      --ibm-teal: #009d9a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'IBM Plex Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      color: var(--ibm-dark);
+      background: #ffffff;
+      line-height: 1.6;
+    }
+
+    /* ===== ヘッダー ===== */
+    header {
+      background: var(--ibm-dark);
+      color: #ffffff;
+      padding: 2rem 2.5rem 1.5rem;
+      border-bottom: 4px solid var(--ibm-blue);
+    }
+    header .badge {
+      display: inline-block;
+      background: var(--ibm-blue);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.15rem 0.6rem;
+      border-radius: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    header h1 { font-size: 1.9rem; font-weight: 300; letter-spacing: -0.01em; }
+    header h1 strong { font-weight: 700; color: var(--ibm-blue); margin-right: 0.5rem; }
+    header .meta { margin-top: 0.7rem; font-size: 0.82rem; color: #a8b2c1; display: flex; gap: 2rem; flex-wrap: wrap; }
+    header .meta span b { color: #c6c6c6; }
+
+    /* ===== レイアウト ===== */
+    .layout { display: flex; min-height: 100vh; }
+    nav {
+      width: 220px; min-width: 220px;
+      background: var(--ibm-cool-gray);
+      border-right: 1px solid var(--ibm-border);
+      padding: 1.5rem 0;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    nav .nav-title { font-size: 0.7rem; font-weight: 700; color: #6f6f6f; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0 1.2rem 0.5rem; }
+    nav a { display: block; padding: 0.45rem 1.2rem; font-size: 0.88rem; color: var(--ibm-mid);
+      text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s; }
+    nav a:hover { background: #e8e8e8; color: var(--ibm-blue); border-left-color: var(--ibm-blue); }
+    main { flex: 1; padding: 2rem 2.5rem; max-width: 960px; }
+
+    /* ===== セクション ===== */
+    section { margin-bottom: 3rem; }
+    .section-header {
+      display: flex; align-items: center; gap: 0.75rem;
+      border-bottom: 2px solid var(--ibm-blue);
+      padding-bottom: 0.5rem; margin-bottom: 1.2rem;
+    }
+    .section-num {
+      background: var(--ibm-blue); color: #fff;
+      font-size: 0.75rem; font-weight: 700;
+      width: 1.8rem; height: 1.8rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    h2 { font-size: 1.25rem; font-weight: 600; color: var(--ibm-dark); }
+
+    /* ===== カード ===== */
+    .card {
+      background: var(--ibm-cool-gray);
+      border: 1px solid var(--ibm-border);
+      border-radius: 4px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--ibm-accent); }
+    .card p, .card li { font-size: 0.88rem; }
+
+    /* ===== テーブル ===== */
+    .table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      background: var(--ibm-mid); color: #fff;
+      padding: 0.5rem 0.75rem; text-align: left; font-weight: 600;
+    }
+    tbody tr:nth-child(even) { background: var(--ibm-cool-gray); }
+    tbody td { padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--ibm-border); vertical-align: top; }
+    tbody tr:hover { background: #e5efff; }
+
+    /* ===== コードブロック ===== */
+    pre {
+      background: #1e1e1e; color: #d4d4d4;
+      border-radius: 4px; padding: 1rem 1.2rem;
+      font-size: 0.8rem; font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      overflow-x: auto; margin-bottom: 1rem; line-height: 1.55;
+    }
+    code { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 0.82em; }
+    .kw  { color: #569cd6; } /* キーワード */
+    .cm  { color: #6a9955; } /* コメント */
+    .st  { color: #ce9178; } /* 文字列 */
+    .nm  { color: #9cdcfe; } /* 変数名 */
+
+    /* ===== バッジ類 ===== */
+    .tag {
+      display: inline-block; border-radius: 2px;
+      font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem;
+      margin: 0.1rem; letter-spacing: 0.04em;
+    }
+    .tag-blue   { background: #dde8ff; color: var(--ibm-accent); }
+    .tag-green  { background: #d9f0d3; color: #1a7526; }
+    .tag-red    { background: #ffd7d9; color: #a2191f; }
+    .tag-yellow { background: #fdf4d3; color: #8a5900; }
+    .tag-gray   { background: #e0e0e0; color: #525252; }
+    .tag-teal   { background: #d9fbfb; color: #005d5d; }
+
+    /* ===== フロー図コンテナ ===== */
+    .mermaid-wrap {
+      background: #fafafa; border: 1px solid var(--ibm-border);
+      border-radius: 4px; padding: 1.5rem;
+      display: flex; justify-content: center; margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+    .mermaid { min-width: 500px; }
+
+    /* ===== スクリーンレイアウト ===== */
+    .screen-box {
+      background: #000080; color: #00ff00;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 0.78rem; border-radius: 4px;
+      padding: 0.8rem 1rem; line-height: 1.5;
+      overflow-x: auto; margin-bottom: 1rem;
+    }
+    .screen-box .hl  { color: #ffffff; font-weight: 700; }
+    .screen-box .rev { background: #00ff00; color: #000080; }
+    .screen-box .inp { text-decoration: underline; color: #ffff00; }
+    .screen-box .dim { color: #00aaaa; }
+
+    /* ===== インジケーター表 ===== */
+    .ind-table td:first-child { font-family: monospace; font-weight: 700; color: var(--ibm-accent); }
+
+    /* ===== ステップリスト ===== */
+    .steps { list-style: none; }
+    .steps li {
+      display: flex; gap: 1rem; align-items: flex-start;
+      padding: 0.6rem 0; border-bottom: 1px solid var(--ibm-border);
+      font-size: 0.88rem;
+    }
+    .steps li:last-child { border-bottom: none; }
+    .step-num {
+      background: var(--ibm-teal); color: #fff;
+      font-size: 0.75rem; font-weight: 700;
+      min-width: 1.6rem; height: 1.6rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    /* ===== 注意・情報ボックス ===== */
+    .notice {
+      border-left: 4px solid var(--ibm-yellow);
+      background: #fdf4d3; padding: 0.75rem 1rem;
+      font-size: 0.85rem; margin-bottom: 0.8rem; border-radius: 0 4px 4px 0;
+    }
+    .notice.info   { border-left-color: var(--ibm-blue);  background: #edf5ff; }
+    .notice.danger { border-left-color: var(--ibm-red);   background: #fff1f1; }
+
+    /* ===== フッター ===== */
+    footer {
+      text-align: center; font-size: 0.75rem; color: #6f6f6f;
+      padding: 1.5rem; border-top: 1px solid var(--ibm-border);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Program Specification</div>
+  <h1><strong>IPH210</strong> 得意先照会プログラム</h1>
+  <div class="meta">
+    <span><b>ライブラリー：</b>STUDYXX</span>
+    <span><b>ソースファイル：</b>QEOLRPG</span>
+    <span><b>メンバー：</b>IPH210.RPG</span>
+    <span><b>タイプ：</b>OPM RPG III (対話型)</span>
+    <span><b>言語：</b>RPG/400</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav>
+    <div class="nav-title">目次</div>
+    <a href="#sec1">1. プログラム概要</a>
+    <a href="#sec2">2. 入力</a>
+    <a href="#sec3">3. 出力</a>
+    <a href="#sec4">4. 主要処理フロー</a>
+    <a href="#sec5">5. エラー処理・例外条件</a>
+    <a href="#sec6">6. 依存関係</a>
+    <a href="#screen">付録 A. 画面レイアウト</a>
+    <a href="#source">付録 B. ソース抜粋</a>
+  </nav>
+
+  <main>
+
+    <!-- =========================================================
+         1. プログラム概要
+    ========================================================== -->
+    <section id="sec1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>プログラム概要</h2>
+      </div>
+
+      <div class="card">
+        <h3>目的</h3>
+        <p>
+          <code>IPH210</code> は IBM i (AS/400) 上で稼働する <strong>OPM RPG III 対話型プログラム</strong>です。
+          ユーザーが画面上で入力した「得意先探索コード（仮名）」をキーに
+          得意先マスター論理ファイル <code>TOKMSL02</code> を検索し、
+          一致する得意先一覧を <strong>サブファイル</strong>に表示します。
+          ページ送りおよび終了操作をサポートする参照専用の照会プログラムです。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>処理の全体像</h3>
+        <ul style="list-style:disc; padding-left:1.2rem; font-size:0.88rem;">
+          <li>画面 <code>PANEL01</code>（検索条件入力）を表示してユーザーの入力を待つ</li>
+          <li>入力された探索コードで <code>TOKMSL02</code> に位置付け（SETLL）</li>
+          <li>読み取ったレコードをサブファイル <code>PANEL80</code> に書き出す（最大20件）</li>
+          <li>サブファイル制御レコード <code>PANEL90</code> でサブファイルを画面表示</li>
+          <li>F8（継続）でさらに読み取りを続行、F3（終了）でプログラム終了</li>
+        </ul>
+      </div>
+
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+flowchart TD
+    START([プログラム開始]) --> P01[PANEL01 表示\n探索コード入力待ち]
+    P01 --> F3A{F3=終了?}
+    F3A -- Yes --> ENDJOB([LR セット / RETRN])
+    F3A -- No  --> SETLL[TKNAKN に探索コードを移動\nTOKMSL02 に SETLL]
+    SETLL --> NOTFOUND{レコードなし?\n*IN30=ON}
+    NOTFOUND -- Yes --> P01
+    NOTFOUND -- No  --> SFLCLR[サブファイルクリア\nRRN01=0]
+    SFLCLR --> RDLOOP[TOKMSL02 READ]
+    RDLOOP --> EOF{EOF?\n*IN50=ON}
+    EOF -- No  --> INC[RRN01+1\nPANEL80 書き出し]
+    INC --> FULL{PANEL80 満杯?\n*IN51=ON}
+    FULL -- No  --> RDLOOP
+    FULL -- Yes --> SHOW
+    EOF -- Yes --> NOREC{RRN01=0?\n件数なし}
+    NOREC -- Yes --> DUMMY[空レコード書き出し\n* IN30 を ON して再表示]
+    NOREC -- No  --> SHOW[PANEL01 書き出し\nPANEL90 EXFMT]
+    DUMMY --> SHOW
+    SHOW --> F3B{F3=終了?}
+    F3B -- Yes --> ENDJOB
+    F3B -- No  --> F8{F8=継続?}
+    F8 -- Yes  --> SFLCLR2[サブファイルクリア\nRRN01=0] --> RDLOOP
+    F8 -- No   --> P01
+
+    classDef io    fill:#dde8ff,stroke:#0043ce,color:#0043ce
+    classDef proc  fill:#d9fbfb,stroke:#009d9a,color:#005d5d
+    classDef dec   fill:#fff3cd,stroke:#8a5900,color:#8a5900
+    classDef term  fill:#393939,stroke:#393939,color:#ffffff
+    classDef err   fill:#ffd7d9,stroke:#a2191f,color:#a2191f
+
+    class START,ENDJOB term
+    class P01,SHOW io
+    class SETLL,SFLCLR,SFLCLR2,RDLOOP,INC,DUMMY proc
+    class F3A,F3B,F8,EOF,FULL,NOTFOUND,NOREC dec
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         2. 入力
+    ========================================================== -->
+    <section id="sec2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>入力</h2>
+      </div>
+
+      <div class="card">
+        <h3>パラメーター</h3>
+        <p>なし（パラメーターなし）。プログラムは単独で呼び出される対話型プログラムです。</p>
+      </div>
+
+      <div class="card">
+        <h3>呼び出し元</h3>
+        <p>メニューまたは <code>CALL IPH210</code> コマンドによる直接呼び出し。上位プログラムからの CALL も可能。</p>
+      </div>
+
+      <h3 style="margin:0.8rem 0 0.5rem; font-size:0.95rem;">使用ファイル一覧</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ファイル名</th>
+              <th>タイプ</th>
+              <th>記述</th>
+              <th>キー</th>
+              <th>アクセス</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>IPH210S</code></td>
+              <td><span class="tag tag-blue">WORKSTN</span></td>
+              <td>得意先照会画面ファイル (DSPF)</td>
+              <td>—</td>
+              <td>CF (複合)</td>
+            </tr>
+            <tr>
+              <td><code>TOKMSL02</code></td>
+              <td><span class="tag tag-teal">論理ファイル (LF)</span></td>
+              <td>得意先マスター論理ファイル<br>（TOKMSP の得意先仮名 TKNAKN キー順ビュー）</td>
+              <td>TKNAKN（得意先仮名）</td>
+              <td>IF (入力のみ)</td>
+            </tr>
+            <tr>
+              <td><code>TOKMSP</code></td>
+              <td><span class="tag tag-green">物理ファイル (PF)</span></td>
+              <td>得意先マスター物理ファイル<br>（TOKMSL02 のベースファイル）</td>
+              <td>TKBANG（得意先番号）</td>
+              <td>間接参照</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin:0.8rem 0 0.5rem; font-size:0.95rem;">画面ファイル レコードフォーマット</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>フォーマット名</th>
+              <th>種別</th>
+              <th>用途</th>
+              <th>ファンクションキー</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>PANEL01</code></td>
+              <td><span class="tag tag-blue">通常レコード</span></td>
+              <td>検索条件入力画面。探索コード入力欄 TOKTAN(5桁)を表示</td>
+              <td>CA03=終了</td>
+            </tr>
+            <tr>
+              <td><code>PANEL80</code></td>
+              <td><span class="tag tag-yellow">SFL (サブファイル)</span></td>
+              <td>検索結果の1件分のデータ格納領域</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><code>PANEL90</code></td>
+              <td><span class="tag tag-yellow">SFLCTL (サブファイル制御)</span></td>
+              <td>サブファイルの表示/クリアを制御。最大20件、7件/ページ</td>
+              <td>CA03=終了, CF08=次のレコード</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin:0.8rem 0 0.5rem; font-size:0.95rem;">得意先マスター物理ファイル（TOKMSP）フィールド定義</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>フィールド名</th><th>桁数</th><th>型</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>TKBANG</code></td><td>5</td><td>文字</td><td>得意先番号（主キー）</td></tr>
+            <tr><td><code>TKNAKN</code></td><td>20</td><td>文字</td><td>得意先仮名（LF キー）</td></tr>
+            <tr><td><code>TKNAKJ</code></td><td>20</td><td>DBCS</td><td>得意先漢字名</td></tr>
+            <tr><td><code>TKADR1</code></td><td>20</td><td>DBCS</td><td>住所１</td></tr>
+            <tr><td><code>TKADR2</code></td><td>20</td><td>DBCS</td><td>住所２</td></tr>
+            <tr><td><code>TKTIKU</code></td><td>2</td><td>文字</td><td>地区コード</td></tr>
+            <tr><td><code>TKPOST</code></td><td>6</td><td>文字</td><td>郵便番号</td></tr>
+            <tr><td><code>TKTELE</code></td><td>13</td><td>文字</td><td>電話番号</td></tr>
+            <tr><td><code>TKGURI</code></td><td>9,0</td><td>数値</td><td>当月売上高</td></tr>
+            <tr><td><code>TKNURI</code></td><td>9,0</td><td>数値</td><td>当年売上高</td></tr>
+            <tr><td><code>TKZURI</code></td><td>9,0</td><td>数値</td><td>前年売上高</td></tr>
+            <tr><td><code>TKUZAN</code></td><td>9,0</td><td>数値</td><td>売掛金残高</td></tr>
+            <tr><td><code>TKGEND</code></td><td>9,0</td><td>数値</td><td>信用限度額</td></tr>
+            <tr><td><code>TKNYUK</code></td><td>6,0</td><td>数値</td><td>最終入金日</td></tr>
+            <tr><td><code>TKSIME</code></td><td>1</td><td>文字</td><td>締め日コード</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         3. 出力
+    ========================================================== -->
+    <section id="sec3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>出力</h2>
+      </div>
+
+      <div class="card">
+        <h3>更新・作成するファイル</h3>
+        <p>
+          本プログラムはデータベースファイルへの更新・追加・削除を一切行いません。
+          すべての出力は <strong>画面（WORKSTN）</strong> への表示のみです。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>戻り値</h3>
+        <p>パラメーターなしのため戻り値はありません。F3キー押下またはプログラム終了時に
+        <code>*INLR = ON</code>（LR インジケーターセット）してから <code>RETRN</code> により呼び出し元へ制御を返します。</p>
+      </div>
+
+      <h3 style="margin:0.8rem 0 0.5rem; font-size:0.95rem;">サブファイル表示フィールド</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>フィールド名</th><th>行</th><th>列</th><th>桁/型</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>TKBANG</code></td><td>8</td><td>4</td><td>5文字</td><td>得意先番号</td></tr>
+            <tr><td><code>TKNAKN</code></td><td>8</td><td>11</td><td>20文字</td><td>得意先仮名</td></tr>
+            <tr><td><code>TKADR1</code></td><td>8</td><td>32</td><td>20文字</td><td>住所１</td></tr>
+            <tr><td><code>TKADR2</code></td><td>9</td><td>32</td><td>20文字</td><td>住所２</td></tr>
+            <tr><td><code>TKGEND</code></td><td>8</td><td>55</td><td>9,0 数値 (J編集)</td><td>信用限度額</td></tr>
+            <tr><td><code>TKUZAN</code></td><td>8</td><td>68</td><td>9,0 数値 (J編集)</td><td>売掛金残高</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         4. 主要処理フロー
+    ========================================================== -->
+    <section id="sec4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>主要処理フロー</h2>
+      </div>
+
+      <!-- フェーズ1 -->
+      <div class="card">
+        <h3>フェーズ 1：検索条件入力 (@START)</h3>
+        <ul class="steps">
+          <li><div class="step-num">1</div><div>PANEL01 を EXFMT で表示し、ユーザーの入力を待機する</div></li>
+          <li><div class="step-num">2</div><div>F3 キー（*IN03=ON）押下なら LR セット → RETRN でプログラム終了</div></li>
+          <li><div class="step-num">3</div><div>入力した探索コード（TOKTAN）を TKNAKN に左詰め転送（MOVEL）</div></li>
+          <li><div class="step-num">4</div><div>TKNAKN をキーとして TOKMSL02 に SETLL（位置付け）。レコードが存在しない場合 *IN30=ON → @START に戻る（エラーメッセージ表示）</div></li>
+        </ul>
+      </div>
+
+      <!-- フェーズ2 -->
+      <div class="card">
+        <h3>フェーズ 2：サブファイル読み込み (@NEXT / @READ)</h3>
+        <ul class="steps">
+          <li><div class="step-num">5</div><div>RRN01（相対レコード番号）を 0 に初期化</div></li>
+          <li><div class="step-num">6</div><div>TOKMSL02 を READ。EOF の場合 *IN50=ON</div></li>
+          <li><div class="step-num">7</div><div>EOF でなければ RRN01 に +1 し、PANEL80 に WRITE（サブファイル書き出し）</div></li>
+          <li><div class="step-num">8</div><div>PANEL80 が満杯（*IN51=ON）になったら読み込みを停止</div></li>
+          <li><div class="step-num">9</div><div>EOF でも満杯でもなければ @READ に戻って次レコードを読む</div></li>
+          <li><div class="step-num">10</div><div>読み込んだレコードが 0 件（RRN01=0）の場合：¥CLEAR サブルーチンを呼んでフィールドをクリア → ダミーレコードを書き出し（サブファイルは最低 1 レコード必要）</div></li>
+        </ul>
+      </div>
+
+      <!-- フェーズ3 -->
+      <div class="card">
+        <h3>フェーズ 3：サブファイル表示・コマンドキー処理</h3>
+        <ul class="steps">
+          <li><div class="step-num">11</div><div>PANEL01 を WRITE でオーバーレイ表示</div></li>
+          <li><div class="step-num">12</div><div>*IN41 をセット → PANEL90 に EXFMT（サブファイルを表示）</div></li>
+          <li><div class="step-num">13</div><div>*IN41 をリセット</div></li>
+          <li><div class="step-num">14</div><div>F3 押下なら LR セット → RETRN</div></li>
+          <li><div class="step-num">15</div><div>*IN42 をセット → PANEL90 に WRITE（サブファイルクリア）→ *IN42 をリセット</div></li>
+          <li><div class="step-num">16</div><div>F8（次のレコード, *IN08=ON）押下なら @NEXT に戻り続きを読む</div></li>
+          <li><div class="step-num">17</div><div>それ以外（Enter など）は @START に戻り新たな検索条件を受け付ける</div></li>
+        </ul>
+      </div>
+
+      <!-- インジケーター表 -->
+      <h3 style="margin:0.8rem 0 0.5rem; font-size:0.95rem;">使用インジケーター一覧</h3>
+      <div class="table-wrap">
+        <table class="ind-table">
+          <thead>
+            <tr><th>インジケーター</th><th>方向</th><th>意味</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>*IN03</td><td><span class="tag tag-blue">レスポンス</span></td><td>F3（終了）キー押下。PANEL01・PANEL90 の CA03 からセット</td></tr>
+            <tr><td>*IN08</td><td><span class="tag tag-blue">レスポンス</span></td><td>F8（次のレコード）キー押下。PANEL90 の CF08 からセット</td></tr>
+            <tr><td>*IN30</td><td><span class="tag tag-teal">エラー</span></td><td>SETLL でレコードが見つからない／DB エラー時 ON。PANEL01 の条件表示にも使用</td></tr>
+            <tr><td>*IN41</td><td><span class="tag tag-green">制御</span></td><td>SFLDSPCTL / SFLDSP のオン条件（サブファイル表示指示）</td></tr>
+            <tr><td>*IN42</td><td><span class="tag tag-green">制御</span></td><td>SFLCLR のオン条件（サブファイルクリア指示）</td></tr>
+            <tr><td>*IN50</td><td><span class="tag tag-yellow">DB</span></td><td>TOKMSL02 の READ 終了（EOF）インジケーター</td></tr>
+            <tr><td>*IN51</td><td><span class="tag tag-yellow">DB</span></td><td>PANEL80（サブファイル）への WRITE が満杯時にセット</td></tr>
+            <tr><td>*INLR</td><td><span class="tag tag-red">終了</span></td><td>最終レコードインジケーター。F3 押下時にセットしてプログラム終了</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 処理フロー詳細図 -->
+      <h3 style="margin:1rem 0 0.5rem; font-size:0.95rem;">詳細処理シーケンス図</h3>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+sequenceDiagram
+    actor User as ユーザー
+    participant PGM as IPH210 (RPG)
+    participant DSP as IPH210S (DSPF)
+    participant LF  as TOKMSL02 (論理)
+    participant PF  as TOKMSP (物理)
+
+    User->>PGM: CALL IPH210
+    PGM->>DSP: EXFMT PANEL01（検索コード入力）
+    DSP-->>User: 画面表示
+    User->>DSP: 探索コード入力 + Enter
+    DSP-->>PGM: TOKTAN 受信
+
+    PGM->>LF: SETLL TKNAKN
+    LF->>PF: アクセスパス経由
+    PF-->>LF: 位置付け結果
+    LF-->>PGM: *IN30（見つからない）or 成功
+
+    loop レコード読み取りループ
+        PGM->>LF: READ TOKMSL02
+        LF-->>PGM: レコード or EOF(*IN50=ON)
+        PGM->>DSP: WRITE PANEL80（サブファイル書き出し）
+    end
+
+    PGM->>DSP: WRITE PANEL01（オーバーレイ）
+    PGM->>DSP: EXFMT PANEL90（サブファイル表示）
+    DSP-->>User: サブファイル画面表示
+
+    alt F8（次のレコード）
+        User->>DSP: F8 キー押下
+        DSP-->>PGM: *IN08=ON
+        PGM->>DSP: WRITE PANEL90 (SFLCLR)
+        Note over PGM,LF: 続きを READ
+    else F3（終了）
+        User->>DSP: F3 キー押下
+        DSP-->>PGM: *IN03=ON
+        PGM->>PGM: SETON LR → RETRN
+    else Enter（新検索）
+        User->>DSP: Enter
+        DSP-->>PGM: 復帰
+        PGM->>DSP: EXFMT PANEL01（再表示）
+    end
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         5. エラー処理・例外条件
+    ========================================================== -->
+    <section id="sec5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>エラー処理・例外条件</h2>
+      </div>
+
+      <div class="notice danger">
+        <strong>注意：</strong>本プログラムには構造的なエラーハンドリング（MONITOR/ON-ERROR）は実装されていません。OPM RPG III の制約によるものです。
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>条件</th><th>検出方法</th><th>対応処理</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>探索コードに一致するレコードなし</td>
+              <td>SETLL 後 *IN30=ON</td>
+              <td>
+                PANEL01 の行 4 列 40 に <span class="screen-box" style="display:inline; padding:0.1rem 0.3rem; font-size:0.75rem;">「該当のレコードがない。」</span>（*IN30 条件付き）を強調表示し、@START に GOTO して検索条件の再入力を促す
+              </td>
+            </tr>
+            <tr>
+              <td>サブファイルに書き出すレコードが 0 件</td>
+              <td>全レコード読み取り後 RRN01=0</td>
+              <td>¥CLEAR サブルーチンで全フィールドをブランク・ゼロクリアしてから WRITE PANEL80（ダミーレコード書き出し）。サブファイルは最低 1 レコードを要求するための措置</td>
+            </tr>
+            <tr>
+              <td>サブファイル満杯（SFLSIZ=20 超）</td>
+              <td>WRITE PANEL80 時 *IN51=ON</td>
+              <td>以降の READ をスキップし、現在の 20 件を表示。F8 で次の 20 件へ</td>
+            </tr>
+            <tr>
+              <td>F3 キー押下（終了要求）</td>
+              <td>EXFMT 後 *IN03=ON</td>
+              <td>SETON LR → RETRN で正常終了</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="notice info">
+        <strong>補足：</strong>DB ファイル入出力エラーや異常終了はシステムデフォルト（RPG サイクル）に委ねられています。
+        本番運用では適切なエラー監視（ジョブログ確認）を推奨します。
+      </div>
+    </section>
+
+    <!-- =========================================================
+         6. 依存関係
+    ========================================================== -->
+    <section id="sec6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>他プログラム／サービスプログラムとの依存関係</h2>
+      </div>
+
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+graph LR
+    IPH210["<b>IPH210</b><br/>得意先照会<br/><i>OPM RPG</i>"]
+
+    subgraph SCREEN["画面ファイル (WORKSTN)"]
+        IPH210S["<b>IPH210S</b><br/>得意先照会画面<br/><i>DSPF</i>"]
+    end
+
+    subgraph DB["データベース (DISK)"]
+        TOKMSL02["<b>TOKMSL02</b><br/>得意先マスター論理<br/><i>LF / KEY:TKNAKN</i>"]
+        TOKMSP["<b>TOKMSP</b><br/>得意先マスター物理<br/><i>PF / KEY:TKBANG</i>"]
+    end
+
+    IPH210 --> IPH210S
+    IPH210 --> TOKMSL02
+    TOKMSL02 --> TOKMSP
+
+    style IPH210 fill:#0f62fe,color:#fff,stroke:#0043ce
+    style IPH210S fill:#dde8ff,stroke:#0043ce,color:#0043ce
+    style TOKMSL02 fill:#d9fbfb,stroke:#009d9a,color:#005d5d
+    style TOKMSP fill:#d9f0d3,stroke:#1a7526,color:#1a7526
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>種別</th><th>名称</th><th>関係</th><th>備考</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-blue">DSPF</span></td>
+              <td><code>IPH210S</code></td>
+              <td>使用（WORKSTN）</td>
+              <td>F仕様書で CF E WORKSTN として定義。PANEL01/PANEL80/PANEL90 の3フォーマットを使用</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-teal">論理ファイル</span></td>
+              <td><code>TOKMSL02</code></td>
+              <td>読み取り専用（IF E K DISK）</td>
+              <td>TKNAKN キー順。TOKMSP の論理ビュー。SETLL + READ でアクセス</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-green">物理ファイル</span></td>
+              <td><code>TOKMSP</code></td>
+              <td>間接参照</td>
+              <td>TOKMSL02 のベース。RPGからは直接アクセスしない</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-gray">呼び出しPGM</span></td>
+              <td>—</td>
+              <td>呼び出し元不明</td>
+              <td>メニュープログラムや CL プログラムから CALL されることを想定</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-gray">サービスPGM</span></td>
+              <td>なし</td>
+              <td>—</td>
+              <td>OPM プログラムのためサービスプログラムの使用なし</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         付録A: 画面レイアウト
+    ========================================================== -->
+    <section id="screen">
+      <div class="section-header">
+        <div class="section-num">A</div>
+        <h2>付録 A ― 画面レイアウト</h2>
+      </div>
+
+      <h3 style="font-size:0.9rem; margin-bottom:0.5rem; color:#6f6f6f;">PANEL01 + PANEL90 合成表示（サブファイル有り）</h3>
+      <div class="screen-box">
+<span class="dim">IPH210S                    </span><span class="hl">得　意　先　照　会</span><span class="dim">             日付: 25/07/10</span><br>
+<span class="dim">XXXXXX-XX                                                時間: 14:30:00</span><br>
+<br>
+<span class="dim">得意先探索コード</span>  <span class="inp">ﾐﾔﾎﾞ               </span>     <span class="dim">              F3=終了  F8=継続</span><br>
+<br>
+<br>
+<span class="dim">  得番  得意先名                住所１／２                    信用限度    売掛残</span><br>
+<span class="hl">  10001 ﾐﾔﾎﾞ ｺﾝﾌﾞ ｶﾌﾞｼｷｶｲｼｬ    東京都千代田区XX 1-2-3                    </span><span class="dim">  999,999  888,888</span><br>
+<span class="dim">                              東京都千代田区XX 1-2-3続き                        </span><br>
+<span class="hl">  10002 ﾐﾔﾎﾞ ｼｮｳｶｲ ｶﾌﾞｼｷｶｲｼｬ  大阪府大阪市YY 2-3-4                    </span><span class="dim">  500,000  250,000</span><br>
+<span class="dim">  ...（最大 7 件/ページ、最大 20 件）</span><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+      </div>
+
+      <div class="notice">
+        <strong>*IN30 = ON のとき：</strong>
+        行 4 列 40 に <code class="rev">「該当のレコードがない。」</code>（RI HI 強調）が表示されます。
+      </div>
+    </section>
+
+    <!-- =========================================================
+         付録B: ソース抜粋
+    ========================================================== -->
+    <section id="source">
+      <div class="section-header">
+        <div class="section-num">B</div>
+        <h2>付録 B ― ソース抜粋（IPH210.RPG）</h2>
+      </div>
+
+      <pre><span class="cm">     F* IPH210 * 得意先探索</span>
+<span class="kw">     F</span><span class="nm">IPH210S </span><span class="kw">CF  E                    WORKSTN</span>
+<span class="kw">     F                                        </span><span class="nm">RRN01</span><span class="kw"> KSFILE </span><span class="nm">PANEL80</span>
+<span class="kw">     F</span><span class="nm">TOKMSL02</span><span class="kw">IF  E           K        DISK</span>
+
+<span class="cm">     C*-------------------------------------------------------------</span>
+<span class="cm">     C* @START : 検索条件入力ループ</span>
+<span class="cm">     C*-------------------------------------------------------------</span>
+<span class="kw">     C           </span><span class="nm">@START</span><span class="kw">    TAG</span>
+<span class="kw">     C                     EXFMT</span><span class="nm">PANEL01</span>
+<span class="kw">     C   03                SETON                     LR</span>
+<span class="kw">     C   03                RETRN</span>
+
+<span class="cm">     C* ファイル・ポインターのセット</span>
+<span class="kw">     C                     MOVEL</span><span class="st">*BLANK   </span><span class="nm"> TKNAKN</span>
+<span class="kw">     C                     MOVEL</span><span class="nm">TOKTAN    TKNAKN</span>
+<span class="kw">     C           </span><span class="nm">TKNAKN</span><span class="kw">    SETLL</span><span class="nm">TOKMSL02             30</span>
+<span class="kw">     C   30                GOTO </span><span class="nm">@START</span>
+
+<span class="cm">     C* レコードの読み取りとサブファイルへの書き出し</span>
+<span class="kw">     C           </span><span class="nm">@NEXT</span><span class="kw">     TAG</span>
+<span class="kw">     C                     Z-ADD0         </span><span class="nm">RRN01</span><span class="kw">   30</span>
+<span class="kw">     C           </span><span class="nm">@READ</span><span class="kw">     TAG</span>
+<span class="kw">     C                     READ </span><span class="nm">TOKMSL02</span><span class="kw">                 50</span>
+<span class="kw">     C  N50                ADD  1         </span><span class="nm">RRN01</span>
+<span class="kw">     C  N50                WRITE</span><span class="nm">PANEL80</span><span class="kw">                  51</span>
+<span class="kw">     C  N50N51             GOTO </span><span class="nm">@READ</span>
+
+<span class="cm">     C*サブファイル・レコードがない時</span>
+<span class="kw">     C           </span><span class="nm">RRN01</span><span class="kw">     IFEQ 0</span>
+<span class="kw">     C                     EXSR </span><span class="nm">¥CLEAR</span>
+<span class="kw">     C                     Z-ADD1         </span><span class="nm">RRN01</span>
+<span class="kw">     C                     WRITE</span><span class="nm">PANEL80</span>
+<span class="kw">     C                     END</span>
+
+<span class="cm">     C*サブファイルの表示</span>
+<span class="kw">     C                     WRITE</span><span class="nm">PANEL01</span>
+<span class="kw">     C                     SETON                     41</span>
+<span class="kw">     C                     EXFMT</span><span class="nm">PANEL90</span>
+<span class="kw">     C                     SETOF                     41</span>
+<span class="kw">     C   03                SETON                     LR</span>
+<span class="kw">     C   03                RETRN</span>
+
+<span class="cm">     C*サブファイルの消去</span>
+<span class="kw">     C                     SETON                     42</span>
+<span class="kw">     C                     WRITE</span><span class="nm">PANEL90</span>
+<span class="kw">     C                     SETOF                     42</span>
+
+<span class="cm">     C*コマンド・キーのチェック</span>
+<span class="kw">     C   08                GOTO </span><span class="nm">@NEXT</span>
+<span class="kw">     C                     GOTO </span><span class="nm">@START</span>
+
+<span class="cm">     C*-------------------------------------------------------------</span>
+<span class="cm">     C* ¥CLEAR サブルーチン : フィールド初期化</span>
+<span class="cm">     C*-------------------------------------------------------------</span>
+<span class="kw">     C           </span><span class="nm">¥CLEAR</span><span class="kw">    BEGSR</span>
+<span class="kw">     C                     MOVE </span><span class="st">*BLANK   </span><span class="nm"> TKBANG</span>
+<span class="kw">     C                     MOVE </span><span class="st">*BLANK   </span><span class="nm"> TKNAKN</span>
+<span class="kw">     C                     MOVE </span><span class="st">*BLANK   </span><span class="nm"> TKADR1</span>
+<span class="kw">     C                     MOVE </span><span class="st">*BLANK   </span><span class="nm"> TKADR2</span>
+<span class="kw">     C                     Z-ADD0         </span><span class="nm">TKGEND</span>
+<span class="kw">     C                     Z-ADD0         </span><span class="nm">TKUZAN</span>
+<span class="kw">     C                     ENDSR</span></pre>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  IPH210 プログラム仕様書 &mdash; STUDYXX/QEOLRPG/IPH210.RPG &nbsp;|&nbsp;
+  画面ファイル: STUDYXX/IPH210S &nbsp;|&nbsp;
+  データ: STUDYXX/TOKMSL02 (TOKMSP) &nbsp;|&nbsp;
+  Generated by IBM Bob
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#dde8ff',
+      primaryTextColor: '#0043ce',
+      primaryBorderColor: '#0043ce',
+      lineColor: '#393939',
+      secondaryColor: '#d9fbfb',
+      tertiaryColor: '#f4f4f4'
+    },
+    flowchart: { curve: 'orthogonal', htmlLabels: true },
+    sequence: { mirrorActors: false }
+  });
+</script>
+</body>
+</html>
