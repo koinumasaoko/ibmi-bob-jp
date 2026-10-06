@@ -103,17 +103,121 @@ STUDYxx
 ```mermaid
 erDiagram
     TOKMSP {
-        char TKBANG "得意先番号"
-        char TKNAKJ "得意先名漢字"
-        char TKADR1 "住所1"
-        numeric TKGEND "信用限度額"
-        numeric TKUZAN "売掛金残高"
+        CHAR(5) TKBANG PK
+        CHAR(20) TKNAKN
+        CHAR(20) TKNAKJ
+        CHAR(20) TKADR1
+        CHAR(20) TKADR2
+        CHAR(2) TKTIKU
+        CHAR(6) TKPOST
+        CHAR(13) TKTELE
+        DECIMAL(9-0) TKGURI
+        DECIMAL(9-0) TKNURI
+        DECIMAL(9-0) TKZURI
+        DECIMAL(9-0) TKUZAN
+        DECIMAL(9-0) TKGEND
+        DECIMAL(6-0) TKNYUK
+        CHAR(1) TKSIME
     }
+
+    SIRMSP {
+        CHAR(5) SRBANG PK
+        CHAR(20) SRNAKN
+        CHAR(20) SRNAKJ
+        DECIMAL(9-0) SRKZAN
+        DECIMAL(9-0) SRGKIN
+        DECIMAL(9-0) SRNKIN
+    }
+
+    HINMSP {
+        CHAR(5) HNBANG PK
+        CHAR(20) HNNAKN
+        CHAR(20) HNNAKJ
+        CHAR(5) HNVEND FK
+        DECIMAL(5-0) HNTEIK
+        DECIMAL(5-0) HNGENK
+        DECIMAL(5-0) HNGSUR
+        DECIMAL(5-0) HNNSUR
+        DECIMAL(7-0) HNGKIN
+        DECIMAL(7-0) HNNKIN
+    }
+
+    JUMIDP {
+        CHAR(5) JHTOKB FK
+        DECIMAL(5-0) JHCHUB PK
+        DECIMAL(6-0) JHDATE
+        CHAR(5) JHTCHU
+        DECIMAL(7-0) JHKING
+        DECIMAL(3-0) JHGYOS
+        CHAR(5) JHOKUB
+        CHAR(2) JHYUSO FK
+        CHAR(20) JHSHUK
+        CHAR(20) JHTEKI
+        CHAR(2) JHTIKU
+    }
+
     JUMEIP {
-        char JUKOBANG "得意先番号"
-        numeric JUKIN "受注金額"
+        CHAR(5) JDTOKB
+        DECIMAL(5-0) JDCHUB PK,FK
+        DECIMAL(3-0) JDGYOB PK
+        CHAR(5) JDHINB FK
+        DECIMAL(5-0) JDSURY
+        DECIMAL(5-0) JDUTAN
+        DECIMAL(7-0) JDKING
     }
-    TOKMSP ||--o{ JUMEIP : "得意先番号"
+
+    YUSOUP {
+        CHAR(2) YUCODE PK
+        CHAR(20) YUNAME
+        CHAR(30) YUTEKI
+    }
+
+    TAXTBL {
+        DECIMAL(5-4) TAX_RATE
+    }
+
+    ASAA1P {
+        CHAR(8) A1CODE PK
+        CHAR(20) A1NAME
+        CHAR(20) A1COMP
+        CHAR(1) A1JBCD
+        CHAR(1) A1ADMI
+        DECIMAL(6-0) A1STDT
+        DECIMAL(6-0) A1LTDT
+        DECIMAL(6-0) A1OPES
+        DECIMAL(6-0) A1OPEL
+        DECIMAL(6-0) A1SEUS
+        DECIMAL(6-0) A1SEUL
+        DECIMAL(6-0) A1DFUS
+        DECIMAL(6-0) A1DFUL
+        DECIMAL(6-0) A1QRYS
+        DECIMAL(6-0) A1QRYL
+        DECIMAL(6-0) A1SDAS
+        DECIMAL(6-0) A1SDAL
+        DECIMAL(6-0) A1PDMS
+        DECIMAL(6-0) A1PDML
+        DECIMAL(6-0) A1DBHS
+        DECIMAL(6-0) A1DBHL
+        DECIMAL(6-0) A1BPHS
+        DECIMAL(6-0) A1BPHL
+        DECIMAL(6-0) A1IP1S
+        DECIMAL(6-0) A1IP1L
+        DECIMAL(6-0) A1CPHS
+        DECIMAL(6-0) A1CPHL
+        DECIMAL(6-0) A1IP2S
+        DECIMAL(6-0) A1IP2L
+        DECIMAL(3-0) A1DBHQ
+        DECIMAL(3-0) A1BPHQ
+        DECIMAL(3-0) A1IP1Q
+        DECIMAL(3-0) A1CPHQ
+        DECIMAL(3-0) A1IP2Q
+    }
+
+    TOKMSP ||--o{ JUMIDP : "places"
+    YUSOUP ||--o{ JUMIDP : "ships_via"
+    JUMIDP ||--|{ JUMEIP : "contains"
+    HINMSP ||--o{ JUMEIP : "ordered_in"
+    SIRMSP ||--o{ HINMSP : "supplies"
 ```
 
 💡 **活用シーン**: 引き継ぎ資料・設計書にそのまま貼り付けて使えます。ドキュメント不足のシステムでも即座にDB全体像を把握できます。
