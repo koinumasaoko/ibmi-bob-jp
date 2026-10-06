@@ -139,16 +139,17 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 ```
 STUDYxx ライブラリーに消費税テーブルを作成してデータを投入してください。
 
-【1】以下の SQL でテーブルを作成
-CREATE TABLE STUDYxx/TAXTBL (
-  TAX_RATE    DECIMAL(5,4) NOT NULL
-)
+【1】STUDYxx/QDDSSRC に TAXTBL メンバーを作成して以下の DDS ソースを書き込み、
+    CRTPF でコンパイルしてください。
+
+     A          R TAXTBL                    TEXT('消費税テーブル')
+     A            TAX_RATE       5P 4       TEXT('消費税率')
 
 【2】以下の SQL でデータを投入
-INSERT INTO STUDYxx/TAXTBL VALUES (0.1000)
+INSERT INTO STUDYxx.TAXTBL VALUES (0.1000)
 ```
 
-> 💡 **TAXTBL の設計**: 現在の税率を1行だけ持つ1列構成です。TAX プロシージャーは `OPEN TAXTBL` → `READ TAXTBL` で税率を取得 → `CLOSE TAXTBL` します。税率変更は `UPDATE STUDYxx/TAXTBL SET TAX_RATE = 0.08` だけで完了し、`CALCUTLS` の再コンパイルは不要です。
+> 💡 **TAXTBL の設計**: 現在の税率を1行だけ持つ1列構成のDDS物理ファイルです。TAX プロシージャーは `OPEN TAXTBL` → `READ TAXREC` で税率を取得 → `CLOSE TAXTBL` します。税率変更は `UPDATE STUDYxx.TAXTBL SET TAX_RATE = 0.08` だけで完了し、`CALCUTLS` の再コンパイルは不要です。
 
 > ✅ **確認**: テーブル作成とデータ投入が正常終了したことを確認してから次のステップへ進んでください。
 
@@ -293,8 +294,9 @@ TAX プロシージャーを以下のように変更する。
 
 - 消費税率をハードコードするのではなく、STUDYxx/TAXTBL から
   READ 命令で TAX_RATE を1件読み込む
-- F仕様書に TAXTBL を追加する（入力ファイル、フルオープン、USROPN）
-- プロシージャー開始時に OPEN TAXTBL、READ TAXTBL で TAX_RATE を取得後に CLOSE TAXTBL する
+- F仕様書に TAXTBL を追加する（入力ファイル、外部記述、フルオープン、USROPN）
+  - RENAME(TAXTBL:TAXREC) を指定してレコード形式名を TAXREC にリネームすること
+- プロシージャー開始時に OPEN TAXTBL、READ TAXREC で TAX_RATE を取得後に CLOSE TAXTBL する
 - 読み込んだ TAX_RATE を NUMBER に掛けて %INT で小数切り捨てした値を返す
 - ADDVAL プロシージャーはそのまま（NUMBER + 100 を返す）
 ```
@@ -323,7 +325,7 @@ DSPLY  0000001100
 > 💡 **税率変更の確認**: TAXTBL の `TAX_RATE` を更新するだけで税率を変えられます。`CALCUTLS` の再コンパイルは不要です。
 >
 > ```sql
-> UPDATE STUDYxx/TAXTBL SET TAX_RATE = 0.0800
+> UPDATE STUDYxx.TAXTBL SET TAX_RATE = 0.0800
 > ```
 >
 > 上記を実行してから再度 CALL すると `DSPLY 0000000080`（1000 × 0.08 = 80）になります。
@@ -481,7 +483,7 @@ run_rpg_unit_test_suite（RPGUnit テスト実行）
 | `CALCUTIL` | `*PGM` | 分岐ロジック・CALCBD 経由でCALCUTLS にバインド |
 | `CALCUTLT` | `*SRVPGM`（テスト） | CALCUTLS のプロシージャーを直接テスト |
 
-> 💡 **データ駆動設計のメリット**: 税率変更は `UPDATE TAXTBL SET TAX_RATE = 0.08` だけで対応可能。`CALCUTLS` の再コンパイルは不要です。
+> 💡 **データ駆動設計のメリット**: 税率変更は `UPDATE STUDYxx.TAXTBL SET TAX_RATE = 0.08` だけで対応可能。`CALCUTLS` の再コンパイルは不要です。
 
 ### Base Bob と PP4i の比較
 
