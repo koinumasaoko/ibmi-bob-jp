@@ -55,9 +55,9 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
      P TAX             B                   EXPORT
      D TAX             PI             9S 0
      D  NUMBER                        9S 0 CONST
-     D  WORK           S             11P 1
+     D  WORK           S             11P 2
      C*
-     C                   EVAL      WORK = NUMBER * 1.1
+     C                   EVAL      WORK = NUMBER * 1.08
      C                   RETURN    %INT(WORK)
      P TAX             E
 ```
@@ -177,9 +177,9 @@ INSERT INTO STUDYxx.TAXTBL VALUES (0.1000)
      P TAX             B                   EXPORT
      D TAX             PI             9S 0
      D  NUMBER                        9S 0 CONST
-     D  WORK           S             11S 1
+     D  WORK           S             11S 2
      C*
-     C                   EVAL      WORK = NUMBER * 1.1
+     C                   EVAL      WORK = NUMBER * 1.08
      C                   RETURN    %INT(WORK)
      P TAX             E
 
@@ -237,23 +237,23 @@ CALL PGM(STUDYxx/CALCUTIL) PARM('000000100' '0')
 DSPLY  0000000200
 ```
 
-**MODE=1: 消費税モード（1000 × 1.1 = 1100）**
+**MODE=1: 消費税モード（1000 × 1.08 = 1080）**
 ```
 CALL PGM(STUDYxx/CALCUTIL) PARM('000001000' '1')
 ```
 ```
-DSPLY  0000001100
+DSPLY  0000001080
 ```
 
-**MODE=1: 小数切り捨て確認（1050 × 1.1 = 1155）**
+**MODE=1: 小数切り捨て確認（1050 × 1.08 = 1134）**
 ```
 CALL PGM(STUDYxx/CALCUTIL) PARM('000001050' '1')
 ```
 ```
-DSPLY  0000001155
+DSPLY  0000001134
 ```
 
-> 💡 **ポイント**: 3番目のパターンで小数点以下が切り捨てられることを確認できます（1050 × 1.1 = 1155.0 → 1155）。
+> 💡 **ポイント**: 3番目のパターンで小数点以下が切り捨てられることを確認できます（1050 × 1.08 = 1134.0 → 1134）。
 
 > ✅ **確認**: 3パターンすべて期待通りに表示されたことを確認してから次のステップへ進んでください。
 
@@ -314,7 +314,7 @@ TAX プロシージャーを以下のように変更する。
 
 改修後、5250エミュレーターで以下を実行して動作を確認します（`xx` は自分の番号）：
 
-**MODE=1: 消費税モード（TAXTBL の税率 10% → 1000 × 1.1 = 1100）**
+**MODE=1: 消費税モード（TAXTBL の税率 10% → 1000 × 1.10 = 1100）**
 ```
 CALL PGM(STUDYxx/CALCUTIL) PARM('000001000' '1')
 ```
@@ -411,8 +411,8 @@ STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください�
 |------------|------|--------|-----------|
 | `testADDVAL_normal` | ADDVAL(100) | 200 | 正常系 |
 | `testADDVAL_zero` | ADDVAL(0) | 100 | 境界値（0入力） |
-| `testTAX_normal` | TAX(1000) | 1100（1000×1.1） | 正常系（TAXTBL 参照） |
-| `testTAX_truncate` | TAX(1050) | 1155（1050×1.1=1155.0 切り捨て） | 境界値（小数切り捨て） |
+| `testTAX_normal` | TAX(1000) | 1100（1000×1.10） | 正常系（TAXTBL 参照） |
+| `testTAX_truncate` | TAX(1050) | 1155（1050×1.10=1155.0 切り捨て） | 境界値（小数切り捨て） |
 | `testTAX_zero` | TAX(0) | 0 | 境界値（0入力） |
 
 > 💡 **テストケースの期待値について**: TAXTBL に `TAX_RATE = 0.1000`（10%）が登録されている前提の期待値です。事前準備3でデータを投入済みであることを確認してからテストを実行してください。
