@@ -13,6 +13,34 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 ---
 
+> ⚠️ **事前準備: 以下の2点が必要です**
+>
+> **① ACS（Access Client Solutions）のインストール**
+> このラボでは、5250端末エミュレーターとして **ACS（IBM i Access Client Solutions）** を使用します。
+> まだインストールしていない場合は、ラボを始める前に以下のページからダウンロード・インストールしてください。
+> 🔗 [ACS ダウンロード（IBM サポートページ）](https://www.ibm.com/support/pages/ibm-i-access-client-solutions)
+> ⚠️ IBM主催ハンズオンの場合は、別途用意のIP、ユーザー情報、ACSの接続方法をご確認ください。
+>
+> **② RPGUnit のIBM iへのインストール**
+> このラボのステップ3では **RPGUnit** テストフレームワークを使用します。IBM i 上に `RPGUNIT` ライブラリーがインストールされている必要があります。
+>
+> **VS Code（Code for IBM i）からインストールする手順（推奨）:**
+> 1. IBM i に接続した状態で、**ステータスバー**（画面下部）の接続名にカーソルを合わせ、**「Settings」** を選択
+> 2. **「Components」** タブに移動し、**「Install component」** を押下
+> 3. 一覧から **「RPGUnit」** を選択して **「OK」** → **「Proceed」** を押下
+> 4. 「IBM i Testing」の出力チャンネルで完了通知を確認
+>
+> 🔗 参考: [iWorld連載記事「VS CodeでRPGプログラムの単体テストを実行してみよう」](https://iworldweb.info/column/serials/vs-code-07)
+>
+> ⚠️ **IBM主催ハンズオンの場合は、すでに実施済です。**
+
+> ✅ **Bobの承認ダイアログについて**
+> このラボでは、Bobがツール（`write_member`・コンパイルコマンドなど）の実行前に承認を求めることがあります。
+> **本ハンズオンでは、承認を求められたらすべて「承認（Allow）」してください。** 意図した操作を実行するための確認ステップです。
+> 「Always allow」を選択すると、同じツールの承認を省略できます。
+
+---
+
 ## 🗺️ このラボの全体の流れ
 
 ![ラボの全体フロー](./images/lab2-flow.svg)
@@ -126,7 +154,29 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 > 💡 **`STUDYxx` について**: `xx` はハンズオン参加者ごとに割り当てられた番号です。例：`STUDY01`、`STUDY02` など。LAB1 で複製した自分の `STUDYxx` ライブラリーを使用します。
 
-> ⚠️ **`RPGUNIT` がリストにない場合**: IBM i の接続設定（Library List）に `RPGUNIT` を追加してください。RPGUnit テスト（ステップ3）の実行時に必要です。
+> ⚠️ **`STUDYxx` または `RPGUNIT` がリストにない場合は、以下いずれかの方法で追加してください。**
+>
+> **方法A: PP4i（Library List設定画面）から追加**
+> 1. アクティビティバーの **IBM i アイコン** をクリック
+> 2. **「USER LIBRARY LIST」** エリアの **「＋」ボタン** をクリック
+> 3. 追加したいライブラリー名（`STUDYxx` または `RPGUNIT`）を入力して Enter
+>
+> **方法B: 5250画面（ACS）から `EDTLIBL` コマンドで追加**
+> 1. ACS で 5250 セッションを開く
+> 2. コマンド入力欄に以下を入力して Enter
+>    ```
+>    EDTLIBL
+>    ```
+> 3. 「ライブラリー・リストの編集」画面が開いたら、空き行に `STUDYxx`（または `RPGUNIT`）を入力して Enter
+> 4. `F3` で終了
+>
+> ⚠️ **IBM主催ハンズオンの場合は、すでに追加済です。**
+
+> 💡 **コマンドパレットでソースを直接開く（参考）**
+> BobにPromptで依頼せずにソースを手動で確認したい場合は、コマンドパレットから直接開けます。
+> `Cmd + Shift + P`（Windowsは `Ctrl + Shift + P`）→ **「IBM i: Go to file」** を選択し、
+> `/STUDYxx/QEOLRPGLE/CALCUTLS` のようにライブラリー・ソースファイル・メンバー名を入力してください。
+> ただしこのラボでは `read_member` ツールを使ってBobが自動取得するため、手動操作は不要です。
 
 ### 準備2: IBM i Developer モードを選択
 
@@ -227,7 +277,7 @@ INSERT INTO STUDYxx.TAXTBL VALUES (0.1000)
 
 ### 準備5: 5250でプログラムを呼び出して動作確認する
 
-コンパイルが完了したら、5250エミュレーターで以下を実行して動作を確認します（`xx` は自分の番号）：
+コンパイルが完了したら、5250エミュレーター（ACS、PCOMM等）で以下を実行して動作を確認します（`xx` は自分の番号）：
 
 **MODE=0: 加算モード（100 + 100 = 200）**
 ```
@@ -297,7 +347,7 @@ TAX プロシージャーを以下のように変更する。
 - F仕様書に TAXTBL を追加する（入力ファイル、外部記述、フルオープン、USROPN）
   - RENAME(TAXTBL:TAXREC) を指定してレコード形式名を TAXREC にリネームすること
 - プロシージャー開始時に OPEN TAXTBL、READ TAXREC で TAX_RATE を取得後に CLOSE TAXTBL する
-- 読み込んだ TAX_RATE を NUMBER に掛けて %INT で小数切り捨てした値を返す
+- NUMBER × (1 + TAX_RATE) を計算し、%INT で小数切り捨てした値を返す（税込金額）
 - ADDVAL プロシージャーはそのまま（NUMBER + 100 を返す）
 ```
 

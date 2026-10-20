@@ -27,6 +27,8 @@ IBM Bob Premium Package for i（PP4i）をインストールし、IBM i への�
 ## ステップ0: QEOLライブラリーのインストール（3分）
 
 > 💡 **このステップの目的**: ハンズオン用サンプルライブラリー `QEOL` を IBM i にリストアします。
+> 
+> ⚠️ **IBM主催ハンズオンの場合は、すでに実施済です。**
 
 ### 0.1 QEOLライブラリーのダウンロードとリストア
 
@@ -34,7 +36,6 @@ IBM Bob Premium Package for i（PP4i）をインストールし、IBM i への�
 
 🔗 **[IBM i QEOL ダウンロード](https://community.ibm.com/community/user/viewdocument/ibm-i-qeol?CommunityKey=2bf1e52c-a706-482b-86e8-018e81a19ab5&tab=librarydocuments)**
 
-> ⚠️ **IBM主催ハンズオンの場合は、すでに実施済です。**
 > ⚠️ **IBM i システムへのリストア手順**については、上記ダウンロードページの説明を参照してください。
 
 > ✅ **確認**: `QEOL` ライブラリーがリストアされたことを確認してください。
@@ -44,6 +45,11 @@ IBM Bob Premium Package for i（PP4i）をインストールし、IBM i への�
 ## ステップ1: PP4iのインストール（3分）
 
 > 💡 **前提**: IBM BobのEnterpriseプランまたはeコマースプランでPP4iのシートが割り当てられていることが必要です。
+
+> 📌 **ACS（Access Client Solutions）について**
+> このLAB1-PP4iでは ACS は使用しません。
+> ただし、続く **LAB2-PP4i でACSが必要**になります。まだインストールしていない場合は、このタイミングで事前にインストールしておいてください。
+> 🔗 [ACS ダウンロード（IBM サポートページ）](https://www.ibm.com/support/pages/ibm-i-access-client-solutions)
 
 ### 1.1 マーケットプレイスからインストール
 
@@ -161,6 +167,11 @@ CPYLIB FROMLIB(QEOL) TOLIB(STUDY01) CRTLIB(*YES) COPYOPT(*ALL)
 > 💡 **ポイント**: BobはIBM i Developer モードでCLコマンドを直接実行できます。「実行してください」と伝えることで、コマンドの生成から実行まで一気に行えます。
 > 承認を求めてきた際は、承認ボタンを押下してください。
 > ユーザーからの許可のプロンプトを求めてきた際は、「許可します」等を明示的にプロンプトで追加指示をしてください。
+
+> ✅ **Bobの承認ダイアログについて**
+> このPP4iハンズオン全体を通じて、Bobがツールの実行前に承認を求めてくることがあります。
+> **本ハンズオンでは、承認を求められたらすべて「承認（Allow）」してください。** 意図した操作を実行するための確認ステップです。
+> 「Always allow」を選択すると、同じツールの承認を省略できます。
 ---
 
 ### 手動作業：4.2 ライブラリーリストへの追加手順
