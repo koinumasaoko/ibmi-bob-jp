@@ -357,4 +357,4 @@ RAG を使って説明してください。
 
 ---
 
-**前のページ**: [LAB3-FIX](./LAB3-FIX.md) | **次のページ**: [LAB2-PP4i](./LAB2-PP4i.md)
+**前のページ**: [LAB3](./LAB3.md) | **次のページ**: [LAB2-PP4i](./LAB2-PP4i.md)
