@@ -34,6 +34,7 @@ IBM Bob Premium Package for i（PP4i）をインストールし、IBM i への�
 
 🔗 **[IBM i QEOL ダウンロード](https://community.ibm.com/community/user/viewdocument/ibm-i-qeol?CommunityKey=2bf1e52c-a706-482b-86e8-018e81a19ab5&tab=librarydocuments)**
 
+> ⚠️ **IBM主催ハンズオンの場合は、すでに実施済です。**
 > ⚠️ **IBM i システムへのリストア手順**については、上記ダウンロードページの説明を参照してください。
 
 > ✅ **確認**: `QEOL` ライブラリーがリストアされたことを確認してください。
@@ -71,6 +72,7 @@ IBM Bob Premium Package for i（PP4i）をインストールし、IBM i への�
 
 ### 手動作業：2.1 接続設定の追加
 
+> ⚠️ **IBM主催ハンズオンの場合は、別途用意のIP、ユーザー情報をご確認ください。**
 > ⚠️ **IBM i 側の前提条件**:
 > - IBM i 7.4 以降
 >   - IBM i 7.4 の特定要件 – SF99704 – レベル 13 以上
@@ -87,10 +89,16 @@ IBM Bob Premium Package for i（PP4i）をインストールし、IBM i への�
 | Connection Name | 任意の名前（例：`IBMI-DEV`） |
 | Host or IP Address | 接続先IPアドレス |
 | Port | `22`（SSH） |
-| Username | IBMiユーザー名 |
+| Username | IBM i ユーザー名 |
 | Password | パスワード |
 
 ![IBM i 接続設定](LAB1-PP4i/images/image-1.png)
+
+> 💡 **接続時にディレクトリパーミッションの確認ダイアログが表示された場合**
+> 以下のような「Directory permissions」ダイアログが表示されることがあります。
+> セキュリティ強化のためパーミッションを更新するか確認しています。**「Yes」をクリック**してください。
+>
+> ![alt text](LAB1-PP4i/images/image-9.png)
 
 ---
 
