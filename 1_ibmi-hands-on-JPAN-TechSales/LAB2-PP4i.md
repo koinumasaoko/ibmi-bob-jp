@@ -41,7 +41,7 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 ## 🗺️ このラボの全体の流れ
 
-![ラボの全体フロー](./images/lab2-flow.svg)
+![ラボの全体フロー](LAB2-PP4i/images/lab2-flow.svg)
 
 ---
 
@@ -124,7 +124,7 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
 
 **オブジェクト構成と呼び出し関係**:
 
-![オブジェクト構成と呼び出し関係](./images/lab2-objects.svg)
+![オブジェクト構成と呼び出し関係](LAB2-PP4i/images/lab2-objects.svg)
 
 **ポイント**:
 - `CALCUTLS`：`NOMAIN` + プロシージャーを `EXPORT` → RPGUnit から直接呼び出し可能
