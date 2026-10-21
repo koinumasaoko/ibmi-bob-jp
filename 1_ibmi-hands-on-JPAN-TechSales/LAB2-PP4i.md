@@ -81,14 +81,14 @@ PP4iを使って IBM i 上のRPGLEソースを**Bobへの自然言語指示で�
      P TAX             B                   EXPORT
      D TAX             PI             9S 0
      D  NUMBER                        9S 0 CONST
-     D  WORK           S             11P 2
+     D  WORK           S             11S 2
      C*
      C                   EVAL      WORK = NUMBER * 1.08
      C                   RETURN    %INT(WORK)
      P TAX             E
 ```
 
-> 💡 **パラメーター型は `9S 0`（ゾーン）を使用**: ゾーン型は5250の `CALL` コマンドから `PARM('000000100')` のように文字列で自然に渡せるため扱いやすいです。フリーフォームのテストスイートでは`zoned(9:0)` と記述します。
+> 💡 **パラメーター型は `9S 0`（ゾーン）を使用**: ゾーン型は5250の `CALL` コマンドから `PARM('000000100')` のように文字列で自然に渡せるため扱いやすいです。フリーフォームのテストスイートでは `zoned(9:0)` と記述します。
 
 ### CALCUTIL（メインプログラム）
 
@@ -290,7 +290,7 @@ DSPLY  0000001134
 以下のプロンプトをBobに貼り付けてください：
 
 ```
-STUDYXX/QEOLRPGLE の CALCUTLS と CALCUTIL メンバーを読み込んで、
+STUDYxx/QEOLRPGLE の CALCUTLS と CALCUTIL メンバーを読み込んで、
 2つのプログラムの役割と関係を日本語で説明してください。
 ```
 
@@ -309,7 +309,7 @@ STUDYXX/QEOLRPGLE の CALCUTLS と CALCUTIL メンバーを読み込んで、
 以下のプロンプトをそのままBobに貼り付けてください：
 
 ```
-STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE を以下の仕様で改修して、
+STUDYxx/QEOLRPGLE/CALCUTLS.RPGLE を以下の仕様で改修して、
 サービスプログラムの再作成（CRTRPGMOD → CRTSRVPGM）まで実施してください。
 CRTSRVPGM のパラメーター: EXPORT(*ALL) ACTGRP(*CALLER)
 
@@ -318,7 +318,7 @@ TAX プロシージャーを以下のように変更する。
 
 - 消費税率をハードコードするのではなく、STUDYxx/TAXTBL から
   READ 命令で TAX_RATE を1件読み込む
-- F仕様書に TAXTBL を追加する（入力ファイル、外部記述、フルオープン、USROPN）
+- F仕様書に TAXTBL を追加する（入力ファイル、外部記述、フルプロシージャー、USROPN）
   - RENAME(TAXTBL:TAXREC) を指定してレコード形式名を TAXREC にリネームすること
 - プロシージャー開始時に OPEN TAXTBL、READ TAXREC で TAX_RATE を取得後に CLOSE TAXTBL する
 - NUMBER × (1 + TAX_RATE) を計算し、%INT で小数切り捨てした値を返す（税込金額）
@@ -369,7 +369,7 @@ DSPLY  0000001100
 > UPDATE STUDYxx.TAXTBL SET TAX_RATE = 0.0800
 > ```
 >
-> 上記を実行してから再度 CALL すると `DSPLY 0000000080`（1000 × 0.08 = 80）になります。
+> 上記を実行してから再度 CALL すると `DSPLY 0000001080`（1000 × 1.08 = 1080）になります。
 
 > ✅ **確認**: 期待通りに表示されたことを確認してから次のステップへ進んでください。
 
@@ -418,7 +418,7 @@ STUDYxx/QTESTSRC に TESTING メンバーを作成して、
 以下のプロンプトをBobに貼り付けてください：
 
 ```
-STUDYXX/QEOLRPGLE の CALCUTLS に対する RPGUnit テストスイートを生成して、
+STUDYxx/QEOLRPGLE の CALCUTLS に対する RPGUnit テストスイートを生成して、
 STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
 QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
 テストケースは以下の5件を含めてください：
@@ -439,7 +439,7 @@ QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成
 ### 3.3 テストの実行
 
 ```
-STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください。
+STUDYxx/QTESTSRC の CALCUTLT テストスイートを実行してください。
 ```
 
 **期待される動作**:
@@ -456,7 +456,7 @@ STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください�
 | `testTAX_truncate` | TAX(1050) | 1155（1050×1.10=1155.0 切り捨て） | 境界値（小数切り捨て） |
 | `testTAX_zero` | TAX(0) | 0 | 境界値（0入力） |
 
-> 💡 **テストケースの期待値について**: TAXTBL に `TAX_RATE = 0.1000`（10%）が登録されている前提の期待値です。事前準備3でデータを投入済みであることを確認してからテストを実行してください。
+> 💡 **テストケースの期待値について**: TAXTBL に `TAX_RATE = 0.1000`（10%）が登録されている前提の期待値です。準備3でデータを投入済みであることを確認してからテストを実行してください。
 
 > ✅ **確認**: 5件すべてが **PASS** になることを確認してください。
 
@@ -468,7 +468,7 @@ STUDYXX/QTESTSRC の CALCUTLT テストスイートを実行してください�
 
 ```
 /review_RPG
-STUDYXX/QEOLRPGLE/CALCUTLS.RPGLE
+STUDYxx/QEOLRPGLE/CALCUTLS.RPGLE
 ```
 
 > 💡 **ポイント**: `/review_RPG` はPP4iのスラッシュコマンドです。IBM i Developer モードで使えるコードレビュー専用の機能です。
@@ -521,7 +521,7 @@ run_rpg_unit_test_suite（RPGUnit テスト実行）
 | `TAXTBL` | `*FILE` | 現在の税率（TAX_RATE）を1行で管理するテーブル |
 | `CALCUTLS` | `*SRVPGM` | 計算ロジック（ADDVAL/TAX）を EXPORT。TAX は TAXTBL を READ で参照 |
 | `CALCBD` | `*BNDDIR` | サービスプログラムを一元管理 |
-| `CALCUTIL` | `*PGM` | 分岐ロジック・CALCBD 経由でCALCUTLS にバインド |
+| `CALCUTIL` | `*PGM` | 分岐ロジック・CALCBD 経由で CALCUTLS にバインド |
 | `CALCUTLT` | `*SRVPGM`（テスト） | CALCUTLS のプロシージャーを直接テスト |
 
 > 💡 **データ駆動設計のメリット**: 税率変更は `UPDATE STUDYxx.TAXTBL SET TAX_RATE = 0.08` だけで対応可能。`CALCUTLS` の再コンパイルは不要です。
