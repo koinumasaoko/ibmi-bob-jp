@@ -375,7 +375,10 @@ DSPLY  0000001100
 
 ---
 
-## ステップ3: RPGUnit でテストする（7分）
+## ステップ3: RPGUnit でテストする ⏰ 時間があれば
+
+> ⚠️ **このステップはオプションです。**
+> CCSID 設定や setUp/tearDown の QCMDEXC など環境依存のトラブルが発生しやすいため、ハンズオンのメイン手順から切り離しています。時間に余裕がある場合や、持ち帰り演習として挑戦してください。
 
 ### 3.1 testing.json の配置をBobに依頼
 
@@ -390,13 +393,13 @@ DSPLY  0000001100
 ```
 STUDYxx/QTESTSRC に TESTING メンバーを作成して、
 以下の内容を書き込んでください。
-QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
+QTESTSRC ソースファイルがなければ RCDLEN(112) CCSID(37) で作成してください。
 
 {
   "rpgunit": {
     "rucrtrpg": {
       "bndSrvPgm": ["STUDYxx/CALCUTLS"],
-      "tgtCcsid": "*JOB",
+      "tgtCcsid": "*SRC",
       "dbgView": "*SOURCE",
       "rpgPpOpt": "*LVL2",
       "cOption": ["*EVENTF"]
@@ -409,6 +412,13 @@ QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成
 ```
 
 > 💡 **`bndSrvPgm`**: テストスイートのコンパイル時に `CALCUTLS` をバインドする指定です。これにより `ADDVAL`・`TAX` プロシージャーをテストから直接呼び出せます。
+
+> 💡 **CCSID に関する注意（日本語環境 CCSID 5035）**
+> - `CRTSRCPF` に `IGCDTA(*YES)` を指定するとシステム CCSID（日本語環境では 5035）になります。RPGUnit ヘッダーファイルの CCSID（273）と不一致になり、`/include qinclude,TEMPLATES` の解決に失敗します。**必ず `CCSID(37)` を明示してください。**
+> - `tgtCcsid` を `*JOB` にすると日本語ジョブ（CCSID 5035）でコンパイルされ、エラーになります。**`*SRC` を指定してソースの CCSID（37）に合わせてください。**
+> - QTESTSRC が CCSID 37 であるため、テストソース内に**日本語コメント・日本語文字列リテラルは記述できません**。
+> - setUp/tearDown で `QCMDEXC` を使用する場合、括弧などが CCSID 変換で文字化けすることがあります。RPGUnit 提供の **`runCmd()`** プロシージャーを代わりに使用してください。
+> - `/copy` ディレクティブは `RPGUNIT/QINCLUDE,TESTCASE` を使用してください（旧来の `RPGUNIT1,TESTCASE` は v6 以降では機能しません）。
 
 > ✅ **確認**: `TESTING` メンバーが作成されたことを確認してから次へ進んでください。
 
