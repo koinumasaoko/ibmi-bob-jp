@@ -390,6 +390,7 @@ DSPLY  0000001100
 ```
 STUDYxx/QTESTSRC に TESTING メンバーを作成して、
 以下の内容を書き込んでください。
+QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
 
 {
   "rpgunit": {
@@ -420,7 +421,6 @@ STUDYxx/QTESTSRC に TESTING メンバーを作成して、
 ```
 STUDYxx/QEOLRPGLE の CALCUTLS に対する RPGUnit テストスイートを生成して、
 STUDYxx/QTESTSRC/CALCUTLT に書き込んでください。
-QTESTSRC ソースファイルがなければ RCDLEN(112) IGCDTA(*YES) で作成してください。
 テストケースは以下の5件を含めてください：
 - testADDVAL_normal : ADDVAL(100) → 200
 - testADDVAL_zero   : ADDVAL(0)   → 100
