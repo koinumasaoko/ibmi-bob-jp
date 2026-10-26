@@ -1,0 +1,71 @@
+/*%METADATA                                                        */
+/* %TEXT 運用編ハンズオン 参加者用ジョブ投入プログラム                */
+/*%EMETADATA                                                       */
+/*********************************************************************/
+/* OPSSETUP - 参加者ごとのハンズオン用ジョブを投入する                 */
+/*                                                                   */
+/* CALL PGM(HANDSON/OPSSETUP) PARM('01')                             */
+/*   → STUDY01/OPSMSGQ を準備し、OPS01A/B/C を HANDSON に投入する     */
+/*                                                                   */
+/*   OPSxxA : RUN      → 正常に常駐                                   */
+/*   OPSxxB : NEEDFILE → RECVFILE が無いため異常終了（停止）          */
+/*   OPSxxC : ASK      → 照会メッセージで応答待ち（MSGW）             */
+/*                                                                   */
+/* 何度実行しても同じ初期状態に戻る（やり直し用）                     */
+/*********************************************************************/
+PGM PARM(&NO)
+  DCL VAR(&NO)   TYPE(*CHAR) LEN(2)
+  DCL VAR(&LIB)  TYPE(*CHAR) LEN(10)
+  DCL VAR(&JOBA) TYPE(*CHAR) LEN(10)
+  DCL VAR(&JOBB) TYPE(*CHAR) LEN(10)
+  DCL VAR(&JOBC) TYPE(*CHAR) LEN(10)
+  DCL VAR(&SQL)  TYPE(*CHAR) LEN(512)
+
+  CHGVAR VAR(&LIB)  VALUE('STUDY' *CAT &NO)
+  CHGVAR VAR(&JOBA) VALUE('OPS' *CAT &NO *CAT 'A')
+  CHGVAR VAR(&JOBB) VALUE('OPS' *CAT &NO *CAT 'B')
+  CHGVAR VAR(&JOBC) VALUE('OPS' *CAT &NO *CAT 'C')
+
+  /* 作業ライブラリーの存在チェック */
+  CHKOBJ OBJ(&LIB) OBJTYPE(*LIB)
+  MONMSG MSGID(CPF9801) EXEC(DO)
+    SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG) +
+              MSGDTA('作業ライブラリー ' *CAT &LIB *TCAT +
+              ' がありません。講師に連絡してください。') +
+              MSGTYPE(*ESCAPE)
+  ENDDO
+
+  /* 前回の状態をリセット（HANDSON 内の自分の OPSxx* ジョブを終了） */
+  /* 同名の終了済みジョブが残っていても対象を特定できるよう SQL で探す */
+  CHGVAR VAR(&SQL) VALUE('BEGIN FOR J AS SELECT JOB_NAME FROM +
+         TABLE(QSYS2.ACTIVE_JOB_INFO(SUBSYSTEM_LIST_FILTER => +
+         ''HANDSON'', JOB_NAME_FILTER => ''OPS' *CAT &NO *CAT '*'', +
+         DETAILED_INFO => ''NONE'')) X DO CALL QSYS2.QCMDEXC(''ENDJOB +
+         JOB('' CONCAT J.JOB_NAME CONCAT '') OPTION(*IMMED) +
+         LOGLMT(0)''); END FOR; END')
+  RUNSQL SQL(&SQL) COMMIT(*NONE)
+  MONMSG MSGID(CPF0000 SQL0000)
+  DLYJOB DLY(3)
+  /* 受信ファイルを削除（OPSxxB を必ず失敗させるため） */
+  DLTF FILE(&LIB/RECVFILE)
+  MONMSG MSGID(CPF0000)
+
+  /* 運用メッセージ待ち行列 */
+  CRTMSGQ MSGQ(&LIB/OPSMSGQ) TEXT('運用編ハンズオン 運用メッセージ')
+  MONMSG MSGID(CPF2112)
+  CLRMSGQ MSGQ(&LIB/OPSMSGQ)
+
+  /* ジョブ投入 */
+  SBMJOB CMD(CALL PGM(HANDSON/OPSWORK) PARM('RUN' &LIB)) +
+         JOB(&JOBA) JOBQ(HANDSON/HANDSONQ) +
+         INQMSGRPY(*RQD) LOG(4 00 *SECLVL)
+  SBMJOB CMD(CALL PGM(HANDSON/OPSWORK) PARM('NEEDFILE' &LIB)) +
+         JOB(&JOBB) JOBQ(HANDSON/HANDSONQ) +
+         INQMSGRPY(*RQD) LOG(4 00 *SECLVL)
+  SBMJOB CMD(CALL PGM(HANDSON/OPSWORK) PARM('ASK' &LIB)) +
+         JOB(&JOBC) JOBQ(HANDSON/HANDSONQ) +
+         INQMSGRPY(*RQD) LOG(4 00 *SECLVL)
+
+  SNDPGMMSG MSG('ハンズオン用ジョブを投入しました: ' *CAT &JOBA *TCAT +
+            ', ' *CAT &JOBB *TCAT ', ' *CAT &JOBC) MSGTYPE(*COMP)
+ENDPGM

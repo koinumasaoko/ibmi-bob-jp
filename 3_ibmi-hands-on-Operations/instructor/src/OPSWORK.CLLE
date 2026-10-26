@@ -1,0 +1,49 @@
+/*%METADATA                                                        */
+/* %TEXT 運用編ハンズオン 業務ジョブ模擬プログラム                    */
+/*%EMETADATA                                                       */
+/*********************************************************************/
+/* OPSWORK - 業務ジョブを模擬する常駐プログラム                       */
+/*                                                                   */
+/* パラメーター                                                       */
+/*   &MODE  RUN      : 常駐（30秒ごとに DLYJOB）                      */
+/*          NEEDFILE : &LIB/RECVFILE があれば常駐、なければ処理中止    */
+/*                     （ジョブは CPF1241 で「正常」終了する点が教材の肝）*/
+/*          ASK      : 照会メッセージを送って応答待ち（MSGW）になる    */
+/*   &LIB   参加者の作業ライブラリー（STUDYxx）                        */
+/*                                                                   */
+/* メッセージは &LIB/OPSMSGQ に送信する（QSYSOPR は汚さない）          */
+/*********************************************************************/
+PGM PARM(&MODE &LIB)
+  DCL VAR(&MODE) TYPE(*CHAR) LEN(8)
+  DCL VAR(&LIB)  TYPE(*CHAR) LEN(10)
+  DCL VAR(&RPY)  TYPE(*CHAR) LEN(1)
+  DCL VAR(&MSG)  TYPE(*CHAR) LEN(256)
+
+  /* NEEDFILE: 前提ファイルの存在チェック */
+  IF COND(&MODE *EQ 'NEEDFILE') THEN(DO)
+    CHKOBJ OBJ(&LIB/RECVFILE) OBJTYPE(*FILE)
+    MONMSG MSGID(CPF9801) EXEC(DO)
+      CHGVAR VAR(&MSG) VALUE('受信ファイル ' *CAT &LIB *TCAT +
+             '/RECVFILE が見つかりません。日次受信データ取込を中止します。')
+      SNDPGMMSG MSG(&MSG) TOMSGQ(&LIB/OPSMSGQ) MSGTYPE(*INFO)
+      /* ジョブログにも診断メッセージを残して終了する。         */
+      /* *ESCAPE を未処理で返すと CPA0701 で MSGW になるため使わない */
+      SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSG) +
+                TOPGMQ(*SAME) MSGTYPE(*DIAG)
+      RETURN
+    ENDDO
+  ENDDO
+
+  /* ASK: 照会メッセージで応答待ちにする */
+  IF COND(&MODE *EQ 'ASK') THEN(DO)
+    SNDUSRMSG MSG('前日分の集計データが未確定です。処理を続行しますか？ +
+              (G=続行 C=取消)') VALUES(G C) DFT(C) +
+              TOMSGQ(&LIB/OPSMSGQ) MSGRPY(&RPY)
+    IF COND(&RPY *EQ 'C') THEN(RETURN)
+  ENDDO
+
+  /* 常駐ループ */
+LOOP:
+  DLYJOB DLY(30)
+  GOTO CMDLBL(LOOP)
+ENDPGM
