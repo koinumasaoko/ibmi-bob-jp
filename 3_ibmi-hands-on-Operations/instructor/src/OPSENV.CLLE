@@ -1,0 +1,57 @@
+/*%METADATA                                                        */
+/* %TEXT 運用編ハンズオン 環境構築プログラム（講師用）                */
+/*%EMETADATA                                                       */
+/*********************************************************************/
+/* OPSENV - ハンズオン用サブシステム・ジョブ待ち行列等を作成する       */
+/*                                                                   */
+/* 実行者: *ALLOBJ / *JOBCTL を持つ講師ユーザー                       */
+/* 前提  : HANDSON ライブラリーに OPSWORK / OPSSETUP が作成済み        */
+/*         （作成手順は instructor/講師用準備ガイド.md を参照）        */
+/*                                                                   */
+/* CALL PGM(HANDSON/OPSENV)                                          */
+/*********************************************************************/
+PGM
+
+  /* サブシステム記述 */
+  CRTSBSD SBSD(HANDSON/HANDSON) POOLS((1 *BASE)) MAXJOBS(*NOMAX) +
+          TEXT('運用編ハンズオン用サブシステム')
+  MONMSG MSGID(CPF0000)
+
+  /* クラス */
+  CRTCLS CLS(HANDSON/HANDSON) RUNPTY(50) +
+         TEXT('運用編ハンズオン用クラス')
+  MONMSG MSGID(CPF0000)
+
+  /* ジョブ待ち行列 */
+  CRTJOBQ JOBQ(HANDSON/HANDSONQ) TEXT('運用編ハンズオン用ジョブ待ち行列')
+  MONMSG MSGID(CPF0000)
+  ADDJOBQE SBSD(HANDSON/HANDSON) JOBQ(HANDSON/HANDSONQ) MAXACT(*NOMAX)
+  MONMSG MSGID(CPF0000)
+
+  /* 経路指定項目 */
+  ADDRTGE SBSD(HANDSON/HANDSON) SEQNBR(9999) CMPVAL(*ANY) +
+          PGM(QSYS/QCMD) CLS(HANDSON/HANDSON)
+  MONMSG MSGID(CPF0000)
+
+  /* 参加者が使うオブジェクトの権限 */
+  GRTOBJAUT OBJ(HANDSON) OBJTYPE(*LIB) USER(*PUBLIC) AUT(*USE)
+  GRTOBJAUT OBJ(HANDSON/OPSWORK) OBJTYPE(*PGM) USER(*PUBLIC) AUT(*USE)
+  GRTOBJAUT OBJ(HANDSON/OPSSETUP) OBJTYPE(*PGM) USER(*PUBLIC) AUT(*USE)
+  GRTOBJAUT OBJ(HANDSON/HANDSONQ) OBJTYPE(*JOBQ) USER(*PUBLIC) AUT(*USE)
+
+  /* LAB2 ステップ3 用：保留中のスケジュール項目 */
+  ADDJOBSCDE JOB(OPSNIGHT) CMD(CALL PGM(HANDSON/OPSWORK) +
+             PARM('RUN' 'HANDSON')) FRQ(*WEEKLY) SCDDATE(*NONE) +
+             SCDDAY(*ALL) SCDTIME('230000') JOBQ(HANDSON/HANDSONQ) +
+             TEXT('運用編ハンズオン 夜間バッチ（保留中）')
+  MONMSG MSGID(CPF0000)
+  HLDJOBSCDE JOB(OPSNIGHT)
+  MONMSG MSGID(CPF0000)
+
+  /* サブシステム開始 */
+  STRSBS SBSD(HANDSON/HANDSON)
+  MONMSG MSGID(CPF1010) /* 既に開始済み */
+
+  SNDPGMMSG MSG('運用編ハンズオン環境を作成し、HANDSON を開始しました。') +
+            MSGTYPE(*COMP)
+ENDPGM

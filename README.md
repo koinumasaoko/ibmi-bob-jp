@@ -10,6 +10,7 @@ IBM BobをIBM i開発で活用するための日本語リソース集です。
 
 - IBM i 開発者
 - IBM i システムの保守担当者
+- IBM i 運用担当者・システム管理者
 - レガシーコードの理解・モダナイゼーションに取り組む方
 - IBM Bobを初めて使う方
 
@@ -60,6 +61,24 @@ IBM Bob Client Engineering EMEAチームが作成したモダナイゼーショ�
 - モダンなウェブUI（React + Carbon Design System）
 - SQL変換の実践
 
+### 3. IBM i 運用ハンズオン（運用編）
+
+IBM BobとPP4iをIBM i実機に接続し、運用・保守業務を効率化する方法を学ぶハンズオン資料です。
+
+📖 **[3_ibmi-hands-on-Operations](./3_ibmi-hands-on-Operations/README.md)**
+
+**内容:**
+- 00-準備: PP4i接続確認とBobの設定
+- LAB1-OPS: 資産の見える化（オブジェクト棚卸し・相互参照・運用者向け説明書）
+- LAB2-OPS: ジョブ／サブシステムの見える化（稼働状況一覧・MSGW検知・稼働レポート）
+- LAB3-OPS: 停止ジョブの検知と起動（期待値との突合せ・原因調査・承認付き再起動）
+- LAB4-OPS: 毎朝の稼働チェックを定型化（オプション）
+
+> **📌 注意**: 運用編専用の安全ルール（`.bob/rules/ops-safety.md`）を使用します。Bob IDEでは必ず `3_ibmi-hands-on-Operations` フォルダーを開いてください。
+
+**所要時間:** 約60分（LAB4-OPS含む場合 +10分）
+**難易度:** 初級〜中級
+
 ## 🚀 クイックスタート
 
 ### リポジトリの取得
@@ -87,6 +106,12 @@ cd 1_ibmi-hands-on-JPAN-TechSales
 cd 2_ibmi-hands-on-EMEA-CE-ja
 ```
 📖 **[README.md](./2_ibmi-hands-on-EMEA-CE-ja/README.md)** を開いて、詳細な手順を確認してください。
+
+**運用編:**
+```bash
+cd 3_ibmi-hands-on-Operations
+```
+📖 **[README.md](./3_ibmi-hands-on-Operations/README.md)** を開いて、詳細な手順を確認してください。
 
 ## ✅ 前提条件
 
@@ -135,6 +160,7 @@ IBM Bobは、理解や変換を助けるAIアシスタントにとどまらず�
 | └ [LAB1-PP4i](./1_ibmi-hands-on-JPAN-TechSales/LAB1-PP4i.md) | PP4i基本操作（インストール・接続・HTML設計書生成） | 初心者〜中級者 | ✅ 公開中 |
 | └ [LAB2-PP4i](./1_ibmi-hands-on-JPAN-TechSales/LAB2-PP4i.md) | PP4iでソース改修・テスト（RPGLEソース改修・RPGUnit） | 中級者 | ✅ 公開中 |
 | [2_ibmi-hands-on-EMEA-CE-ja](./2_ibmi-hands-on-EMEA-CE-ja/) | アプリケーションモダナイゼーション<br>RPG変換・UI刷新・SQL移行 | 初心者〜中級者 | ✅ 公開中 |
+| [3_ibmi-hands-on-Operations](./3_ibmi-hands-on-Operations/) | IBM i運用ハンズオン（LAB1〜4-OPS）<br>運用編：資産把握・ジョブ監視・停止ジョブ復旧 | 初心者〜中級者 | ✅ 公開中 |
 
 ## 🤝 コントリビューション
 
@@ -159,3 +185,5 @@ IBM Bobは、理解や変換を助けるAIアシスタントにとどまらず�
 👉 **基礎から学ぶ**: [IBM i開発ハンズオン（日本Powerテクニカルセールス版）](./1_ibmi-hands-on-JPAN-TechSales/README.md)
 
 👉 **モダナイゼーションを学ぶ**: [アプリケーションモダナイゼーション（EMEA CE版）](./2_ibmi-hands-on-EMEA-CE-ja/README.md)
+
+👉 **運用を学ぶ**: [IBM i運用ハンズオン（運用編）](./3_ibmi-hands-on-Operations/README.md)
